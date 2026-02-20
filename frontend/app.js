@@ -57,6 +57,7 @@ const elDimensions = document.getElementById('text-dimensions');
 const randSeed = document.getElementById('rand-seed');
 const btnGenerate = document.getElementById('btn-generate');
 const btnIterate = document.getElementById('btn-iterate');
+const btnBranch = document.getElementById('btn-branch');
 
 // Template Elements
 const editCharacters = document.getElementById('edit-characters');
@@ -256,6 +257,34 @@ function initEvents() {
             elSeed.value = currentSeed + 1;
         }
         await generateImage();
+    });
+
+    btnBranch.addEventListener('click', async () => {
+        if (!activeNodeId || !currentProject) return alert("Select an image to branch from first.");
+        const name = prompt("Enter new project name:", `${currentProject.name} (Branched)`);
+        if (name) {
+            // Keep params but clear image and parent ID
+            const activeNode = currentProject.nodes[activeNodeId];
+            if (!activeNode) return;
+
+            try {
+                // Create project
+                const res = await fetch(`${API_URL}/projects`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const newProj = await res.json();
+
+                // Switch context to newly created project
+                await openProject(newProj.id);
+
+                // Immediately generate the first image using copied parameters
+                await generateImage();
+            } catch (e) {
+                console.error("Error branching project", e);
+            }
+        }
     });
 
     document.addEventListener('keydown', (e) => {
