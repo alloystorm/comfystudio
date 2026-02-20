@@ -10,6 +10,8 @@ class GenerationParams(BaseModel):
     template_values: Optional[Dict[str, str]] = {}
     negative_prompt: str = ""
     model: str = ""
+    lora: Optional[str] = ""
+    bypass_lora: bool = False
     seed: int
     steps: int = 20
     cfg: float = 8.0
@@ -21,6 +23,7 @@ class GenerationParams(BaseModel):
 class AvailableModels(BaseModel):
     checkpoints: List[str] = []
     unets: List[str] = []
+    loras: List[str] = []
 
 class TemplateList(BaseModel):
     characters: List[str] = ["1girl", "1boy"]
@@ -36,6 +39,8 @@ class WorkflowConfigMap(BaseModel):
     model_field: Optional[str] = None
     latent: Optional[str] = None
     save: Optional[str] = None
+    lora: Optional[str] = None
+    lora_field: Optional[str] = None
 
 class WorkflowConfig(BaseModel):
     data: dict

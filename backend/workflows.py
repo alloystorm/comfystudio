@@ -36,7 +36,7 @@ def load_workflows():
                 if name == "t2i_sdxl":
                     default_map = {"sampler": "24", "positive_prompt": "6", "negative_prompt": "7", "model": "4", "model_field": "ckpt_name", "latent": "5", "save": "27"}
                 elif name == "t2i_ZIT":
-                    default_map = {"sampler": "3", "positive_prompt": "6", "negative_prompt": "7", "model": "16", "model_field": "unet_name", "latent": "13", "save": "9"}
+                    default_map = {"sampler": "3", "positive_prompt": "6", "negative_prompt": "7", "model": "16", "model_field": "unet_name", "latent": "13", "save": "9", "lora": "28", "lora_field": "lora_name"}
                 elif name == "i2v_wan22":
                     default_map = {"sampler": "85", "positive_prompt": "93", "negative_prompt": "89", "model": "95", "model_field": "unet_name", "latent": "98", "save": "108"}
                 

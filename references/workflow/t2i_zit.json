@@ -191,6 +191,8 @@
     "model": "16",
     "model_field": "unet_name",
     "latent": "13",
-    "save": "9"
+    "save": "9",
+    "lora": "28",
+    "lora_field": "lora_name"
   }
 }

@@ -5,7 +5,7 @@ const API_URL = '/api';
 let currentProject = null;
 let currentTimeline = [];
 let activeNodeId = null;
-let availableModels = { checkpoints: [], unets: [] };
+let availableModels = { checkpoints: [], unets: [], loras: [] };
 let currentTemplates = { characters: [], locations: [], environments: [], styles: [] };
 let availableWorkflows = {};
 
@@ -34,6 +34,8 @@ const editWfPos = document.getElementById('edit-wf-pos');
 const editWfNeg = document.getElementById('edit-wf-neg');
 const editWfModel = document.getElementById('edit-wf-model');
 const editWfModelField = document.getElementById('edit-wf-model-field');
+const editWfLora = document.getElementById('edit-wf-lora');
+const editWfLoraField = document.getElementById('edit-wf-lora-field');
 const editWfLatent = document.getElementById('edit-wf-latent');
 const editWfSave = document.getElementById('edit-wf-save');
 
@@ -42,6 +44,9 @@ const elWorkflow = document.getElementById('input-workflow');
 const elPrompt = document.getElementById('input-prompt');
 const elNegative = document.getElementById('input-negative');
 const elModel = document.getElementById('input-model');
+const elLora = document.getElementById('input-lora');
+const bypassLora = document.getElementById('bypass-lora');
+const loraContainer = document.getElementById('lora-container');
 const elSeed = document.getElementById('input-seed');
 const elSteps = document.getElementById('input-steps');
 const elCfg = document.getElementById('input-cfg');
@@ -133,15 +138,33 @@ function updateModelDropdown() {
 
     if (options.length === 0) {
         elModel.innerHTML = '<option value="">No models found</option>';
-        return;
+    } else {
+        options.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            elModel.appendChild(opt);
+        });
     }
 
-    options.forEach(name => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        elModel.appendChild(opt);
-    });
+    // Handle LoRA
+    const wfInfo = availableWorkflows[wf];
+    if (wfInfo && wfInfo.map && wfInfo.map.lora) {
+        loraContainer.style.display = 'flex';
+        elLora.innerHTML = '<option value="">-- Select LoRA --</option>';
+        if (availableModels.loras) {
+            availableModels.loras.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                elLora.appendChild(opt);
+            });
+        }
+    } else {
+        loraContainer.style.display = 'none';
+        bypassLora.checked = false;
+        elLora.value = '';
+    }
 }
 
 function initEvents() {
@@ -192,6 +215,8 @@ function initEvents() {
         editWfNeg.value = "";
         editWfModel.value = "";
         editWfModelField.value = "";
+        editWfLora.value = "";
+        editWfLoraField.value = "";
         editWfLatent.value = "";
         editWfSave.value = "";
     });
@@ -328,6 +353,8 @@ function loadWorkflowSettings(name) {
     editWfNeg.value = wf.map.negative_prompt || "";
     editWfModel.value = wf.map.model || "";
     editWfModelField.value = wf.map.model_field || "";
+    editWfLora.value = wf.map.lora || "";
+    editWfLoraField.value = wf.map.lora_field || "";
     editWfLatent.value = wf.map.latent || "";
     editWfSave.value = wf.map.save || "";
 }
@@ -351,6 +378,8 @@ async function saveWorkflowSettings() {
             negative_prompt: editWfNeg.value.trim() || null,
             model: editWfModel.value.trim() || null,
             model_field: editWfModelField.value.trim() || null,
+            lora: editWfLora.value.trim() || null,
+            lora_field: editWfLoraField.value.trim() || null,
             latent: editWfLatent.value.trim() || null,
             save: editWfSave.value.trim() || null
         }
@@ -524,6 +553,11 @@ function selectNode(id) {
     elPrompt.value = node.params.prompt_template || node.params.prompt; // Show raw prompt
     elNegative.value = node.params.negative_prompt;
     if (node.params.model) elModel.value = node.params.model;
+
+    // LoRA State Restoration
+    bypassLora.checked = !!node.params.bypass_lora;
+    if (node.params.lora) elLora.value = node.params.lora;
+
     elSeed.value = node.params.seed;
     elSteps.value = node.params.steps;
     elCfg.value = node.params.cfg;
@@ -633,6 +667,8 @@ async function generateImage() {
         template_values: tvClean,
         negative_prompt: elNegative.value,
         model: elModel.value,
+        lora: elLora.value,
+        bypass_lora: bypassLora.checked,
         seed: parseInt(elSeed.value),
         steps: parseInt(elSteps.value),
         cfg: parseFloat(elCfg.value),

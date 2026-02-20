@@ -32,7 +32,11 @@ async def health_check():
 @app.get("/api/models", response_model=AvailableModels)
 async def get_models():
     models = comfyui.get_available_models()
-    return AvailableModels(checkpoints=models["checkpoints"], unets=models["unets"])
+    return AvailableModels(
+        checkpoints=models.get("checkpoints", []), 
+        unets=models.get("unets", []),
+        loras=models.get("loras", [])
+    )
 
 @app.get("/api/templates", response_model=TemplateList)
 async def list_templates():
@@ -98,6 +102,15 @@ async def run_generation(project_id: str, node: GenerationNode):
     if m.get("model") in workflow and node.params.model:
         workflow[m["model"]]["inputs"][m["model_field"]] = node.params.model
         
+    if m.get("lora") in workflow:
+        if node.params.bypass_lora:
+            workflow[m["lora"]]["inputs"]["strength_model"] = 0
+            workflow[m["lora"]]["inputs"]["strength_clip"] = 0
+        else:
+            if node.params.lora:
+                workflow[m["lora"]]["inputs"][m["lora_field"]] = node.params.lora
+            # If not bypassed, keep its default strengths
+            
     if m.get("latent") in workflow:
         workflow[m["latent"]]["inputs"]["width"] = node.params.width
         workflow[m["latent"]]["inputs"]["height"] = node.params.height

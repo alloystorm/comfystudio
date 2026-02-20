@@ -78,9 +78,13 @@ def get_available_models() -> Dict[str, list]:
             
             # Combine unets
             all_unets = list(set(unets + gguf_unets))
+            
+            loras = data.get('LoraLoader',{}).get('input',{}).get('required',{}).get('lora_name',[[]])[0]
+            
             return {
                 "checkpoints": checkpoints,
-                "unets": all_unets
+                "unets": all_unets,
+                "loras": loras
             }
     except Exception as e:
         print(f"Error fetching models: {e}")

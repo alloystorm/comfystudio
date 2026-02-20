@@ -103,6 +103,10 @@
                                         id="edit-wf-model"></div>
                                 <div class="form-group"><label>Model Field Name (e.g. ckpt_name)</label><input
                                         type="text" id="edit-wf-model-field"></div>
+                                <div class="form-group"><label>LoRA Node ID</label><input type="text" id="edit-wf-lora">
+                                </div>
+                                <div class="form-group"><label>LoRA Field Name</label><input type="text"
+                                        id="edit-wf-lora-field"></div>
                                 <div class="form-group"><label>Latent Size Node ID</label><input type="text"
                                         id="edit-wf-latent"></div>
                                 <div class="form-group"><label>Save Image Node ID</label><input type="text"
@@ -208,11 +212,23 @@
                         <textarea id="input-negative" rows="3" placeholder="What to avoid..."></textarea>
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
+                        <div class="form-group" style="flex: 2;">
                             <label>Model</label>
                             <select id="input-model">
                                 <option value="">Loading models...</option>
                             </select>
+                        </div>
+                    </div>
+                    <div id="lora-container" class="form-row" style="display: none;">
+                        <div class="form-group" style="flex: 2;">
+                            <label>LoRA</label>
+                            <select id="input-lora">
+                                <option value="">-- Select LoRA --</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1; justify-content: flex-end;">
+                            <label class="icon-toggle" title="Bypass LoRA" style="width: 100%;"><input type="checkbox"
+                                    id="bypass-lora"> Bypass LoRA</label>
                         </div>
                     </div>
                     <div class="form-row">
