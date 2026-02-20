@@ -13,14 +13,15 @@
 <body>
     <div id="app">
         <header>
-            <div class="logo">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <h1>ComfyStudio</h1>
-            </div>
-            <div class="header-nav">
+            <div class="header-left" style="display: flex; align-items: center; gap: 1.5rem;">
+                <div class="logo">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <h1>ComfyStudio</h1>
+                </div>
                 <button class="nav-btn" id="btn-dashboard"><i class="fa-solid fa-house"></i> Home Dashboard</button>
-                <span id="label-current-project"
-                    style="margin-left: 1rem; color: var(--text-secondary); font-weight: 500;"></span>
+            </div>
+            <div class="header-center">
+                <span id="label-current-project" style="color: var(--text-secondary); font-weight: 500;"></span>
             </div>
             <div class="header-actions">
                 <button id="btn-new-project" class="primary-btn"><i class="fa-solid fa-folder-plus"></i> New
