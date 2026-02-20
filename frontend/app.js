@@ -1021,8 +1021,14 @@ function pollForCompletion(nodeId) {
                 // Auto-Iterate if Slideshow is active
                 if (slideshowActive) {
                     const delaySecs = parseInt(inputSlideshowDelay.value) || 5;
-                    slideshowTimeout = setTimeout(() => {
-                        btnIterate.click();
+                    slideshowTimeout = setTimeout(async () => {
+                        if (slideshowActive) {
+                            if (!randSeed.checked) {
+                                const currentSeed = parseInt(elSeed.value) || 0;
+                                elSeed.value = currentSeed + 1;
+                            }
+                            await generateImage();
+                        }
                     }, delaySecs * 1000);
                 }
 
