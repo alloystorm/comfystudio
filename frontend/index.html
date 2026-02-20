@@ -39,13 +39,27 @@
                 </div>
 
                 <div class="modal-tabs">
-                    <button class="tab-btn active" data-tab="tab-templates">Prompt Templates</button>
+                    <button class="tab-btn active" data-tab="tab-general">General</button>
+                    <button class="tab-btn" data-tab="tab-templates">Prompt Templates</button>
                     <button class="tab-btn" data-tab="tab-workflows">Workflow Templates</button>
                 </div>
 
                 <div class="modal-body">
+                    <!-- General Tab -->
+                    <div id="tab-general" class="tab-content active">
+                        <div class="header-row">
+                            <p class="desc">General application settings.</p>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="max-width: 300px;">
+                                <label>Slideshow Delay (seconds)</label>
+                                <input type="number" id="input-slideshow-delay" value="5" min="1" max="60">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Templates Tab -->
-                    <div id="tab-templates" class="tab-content active">
+                    <div id="tab-templates" class="tab-content">
                         <div class="header-row">
                             <p class="desc">Edit the options for your prompt tags. Enter one item per line.</p>
                             <button id="btn-save-templates" class="primary-btn"><i class="fa-solid fa-save"></i> Save
@@ -290,10 +304,18 @@
                     <button id="btn-generate" class="primary-btn generate-btn" title="Ctrl+Enter">
                         <i class="fa-solid fa-bolt"></i> Generate
                     </button>
-                    <button id="btn-iterate" class="action-btn" title="Shift+Enter"
-                        style="width: 100%; justify-content: center; margin-top: -10px; border-radius: var(--radius-md); padding: 0.6rem;">
-                        <i class="fa-solid fa-forward-step"></i> Iterate (Seed +1)
-                    </button>
+                    <div style="display: flex; gap: 0.5rem; margin-top: -10px;">
+                        <button id="btn-iterate" class="action-btn" title="Shift+Enter"
+                            style="flex: 1; justify-content: center; border-radius: var(--radius-md); padding: 0.6rem;">
+                            <i class="fa-solid fa-forward-step"></i> Iterate (Seed +1)
+                        </button>
+                        <label class="icon-toggle" title="Auto-iterate every 3 seconds" id="label-slideshow"
+                            style="flex: 0 0 auto; padding: 0.6rem 1rem; border-radius: var(--radius-md); background: var(--bg-surface-hover); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                            <input type="checkbox" id="toggle-slideshow"
+                                style="margin-right: 0.5rem; margin-bottom: 0;">
+                            <i class="fa-solid fa-play"></i>
+                        </label>
+                    </div>
                     <button id="btn-branch" class="action-btn"
                         style="width: 100%; justify-content: center; margin-top: -5px; border-radius: var(--radius-md); padding: 0.6rem;">
                         <i class="fa-solid fa-code-branch"></i> New Project From This

@@ -168,7 +168,7 @@ header {
     transition: all 0.3s;
     display: flex;
     flex-direction: column;
-    aspect-ratio: 4/3;
+    aspect-ratio: 1/1;
 }
 
 .project-card:hover {

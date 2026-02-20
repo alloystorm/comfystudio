@@ -59,6 +59,10 @@ const randSeed = document.getElementById('rand-seed');
 const btnGenerate = document.getElementById('btn-generate');
 const btnIterate = document.getElementById('btn-iterate');
 const btnBranch = document.getElementById('btn-branch');
+const toggleSlideshow = document.getElementById('toggle-slideshow');
+const inputSlideshowDelay = document.getElementById('input-slideshow-delay');
+let slideshowActive = false;
+let slideshowTimeout = null;
 
 // Template Elements
 const editCharacters = document.getElementById('edit-characters');
@@ -175,6 +179,14 @@ function initEvents() {
         loadDashboard();
     });
 
+    // Load persisted settings
+    const savedDelay = localStorage.getItem('slideshowDelay');
+    if (savedDelay) inputSlideshowDelay.value = savedDelay;
+
+    inputSlideshowDelay.addEventListener('input', (e) => {
+        localStorage.setItem('slideshowDelay', e.target.value);
+    });
+
     btnSettings.addEventListener('click', () => {
         modalSettings.classList.add('active');
         loadTemplateSettings();
@@ -247,7 +259,21 @@ function initEvents() {
         updateModelDropdown();
     });
 
+    toggleSlideshow.addEventListener('change', (e) => {
+        slideshowActive = e.target.checked;
+        if (!slideshowActive && slideshowTimeout) {
+            clearTimeout(slideshowTimeout);
+            slideshowTimeout = null;
+        }
+    });
+
     btnIterate.addEventListener('click', async () => {
+        // Prevent manual clicks while waiting for slideshow
+        if (slideshowTimeout) {
+            clearTimeout(slideshowTimeout);
+            slideshowTimeout = null;
+        }
+
         if (!randSeed.checked) {
             const currentSeed = parseInt(elSeed.value) || 0;
             elSeed.value = currentSeed + 1;
@@ -746,9 +772,9 @@ async function generateImage() {
         aspect_ratio: elAspectRatio.value,
         orientation: elOrientation.value
     };
-
-    generationLoader.style.display = 'flex';
-
+    if (!slideshowActive) {
+        generationLoader.style.display = 'flex';
+    }
     try {
         const res = await fetch(`${API_URL}/generate`, {
             method: 'POST',
@@ -765,9 +791,14 @@ async function generateImage() {
         // Optimistically add to timeline
         currentProject.nodes[newNode.id] = newNode;
         currentTimeline.push(newNode);
-        selectNode(newNode.id);
 
-        // Poll for completion (naive approach, websockets would be better for production)
+        if (!slideshowActive) {
+            selectNode(newNode.id);
+        } else {
+            renderTimeline();
+        }
+
+        // Poll for completion
         pollForCompletion(newNode.id);
 
     } catch (e) {
@@ -787,14 +818,23 @@ function pollForCompletion(nodeId) {
                 clearInterval(interval);
                 currentProject = p;
                 currentTimeline = Object.values(currentProject.nodes).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-                if (activeNodeId === nodeId) {
+                if (activeNodeId === nodeId || slideshowActive) {
                     selectNode(nodeId);
                 }
+
+                // Auto-Iterate if Slideshow is active
+                if (slideshowActive) {
+                    const delaySecs = parseInt(inputSlideshowDelay.value) || 5;
+                    slideshowTimeout = setTimeout(() => {
+                        btnIterate.click();
+                    }, delaySecs * 1000);
+                }
+
             } else if (node.status === 'error') {
                 clearInterval(interval);
                 currentProject = p;
                 currentTimeline = Object.values(currentProject.nodes).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-                if (activeNodeId === nodeId) {
+                if (activeNodeId === nodeId || slideshowActive) {
                     selectNode(nodeId);
                 }
             } else if (node.status === 'generating') {
