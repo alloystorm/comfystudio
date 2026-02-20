@@ -63,6 +63,7 @@ const elOrientation = document.getElementById('input-orientation');
 const elDimensions = document.getElementById('text-dimensions');
 const randSeed = document.getElementById('rand-seed');
 const btnGenerate = document.getElementById('btn-generate');
+const btnBranch = document.getElementById('btn-branch');
 const btnSlideshow = document.getElementById('btn-slideshow');
 const inputSlideshowDelay = document.getElementById('input-slideshow-delay');
 let slideshowActive = false;
