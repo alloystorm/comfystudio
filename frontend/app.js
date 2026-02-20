@@ -57,9 +57,7 @@ const elOrientation = document.getElementById('input-orientation');
 const elDimensions = document.getElementById('text-dimensions');
 const randSeed = document.getElementById('rand-seed');
 const btnGenerate = document.getElementById('btn-generate');
-const btnIterate = document.getElementById('btn-iterate');
-const btnBranch = document.getElementById('btn-branch');
-const toggleSlideshow = document.getElementById('toggle-slideshow');
+const btnSlideshow = document.getElementById('btn-slideshow');
 const inputSlideshowDelay = document.getElementById('input-slideshow-delay');
 let slideshowActive = false;
 let slideshowTimeout = null;
@@ -259,26 +257,32 @@ function initEvents() {
         updateModelDropdown();
     });
 
-    toggleSlideshow.addEventListener('change', (e) => {
-        slideshowActive = e.target.checked;
-        if (!slideshowActive && slideshowTimeout) {
-            clearTimeout(slideshowTimeout);
-            slideshowTimeout = null;
-        }
-    });
+    btnSlideshow.addEventListener('click', async () => {
+        slideshowActive = !slideshowActive;
 
-    btnIterate.addEventListener('click', async () => {
-        // Prevent manual clicks while waiting for slideshow
-        if (slideshowTimeout) {
-            clearTimeout(slideshowTimeout);
-            slideshowTimeout = null;
-        }
+        if (slideshowActive) {
+            // Turn to STOP button
+            btnSlideshow.classList.add('btn-stop');
+            btnSlideshow.innerHTML = '<i class="fa-solid fa-stop"></i> Stop';
+            btnSlideshow.title = "Stop Slideshow";
 
-        if (!randSeed.checked) {
-            const currentSeed = parseInt(elSeed.value) || 0;
-            elSeed.value = currentSeed + 1;
+            // Immediately iterate and start
+            if (!randSeed.checked) {
+                const currentSeed = parseInt(elSeed.value) || 0;
+                elSeed.value = currentSeed + 1;
+            }
+            await generateImage();
+        } else {
+            // Turn to PLAY button
+            btnSlideshow.classList.remove('btn-stop');
+            btnSlideshow.innerHTML = '<i class="fa-solid fa-play"></i>';
+            btnSlideshow.title = "Start Slideshow (Auto-Iterate)";
+
+            if (slideshowTimeout) {
+                clearTimeout(slideshowTimeout);
+                slideshowTimeout = null;
+            }
         }
-        await generateImage();
     });
 
     btnBranch.addEventListener('click', async () => {
@@ -315,12 +319,18 @@ function initEvents() {
     });
 
     document.addEventListener('keydown', (e) => {
+        // Prevent shortcuts if typing in input fields
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+
         if (e.ctrlKey && e.key === 'Enter') {
             e.preventDefault();
             btnGenerate.click();
         } else if (e.shiftKey && e.key === 'Enter') {
             e.preventDefault();
-            btnIterate.click();
+            btnSlideshow.click();
+        } else if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+            e.preventDefault();
+            navigateTimeline(e.key);
         }
     });
 
@@ -576,39 +586,166 @@ async function openProject(id) {
     }
 }
 
+function navigateTimeline(direction) {
+    if (!currentTimeline || currentTimeline.length === 0 || !activeNodeId) return;
+
+    // Build identical groups structure to find current position
+    const groups = [];
+    currentTimeline.forEach(node => {
+        if (groups.length === 0) {
+            groups.push([node]);
+        } else {
+            const lastGroup = groups[groups.length - 1];
+            const lastNode = lastGroup[lastGroup.length - 1];
+            if (node.params.prompt === lastNode.params.prompt) {
+                lastGroup.push(node);
+            } else {
+                groups.push([node]);
+            }
+        }
+    });
+
+    let currentGroupIndex = -1;
+    let currentNodeIndexInsideGroup = -1;
+
+    for (let i = 0; i < groups.length; i++) {
+        const pIdx = groups[i].findIndex(n => n.id === activeNodeId);
+        if (pIdx !== -1) {
+            currentGroupIndex = i;
+            currentNodeIndexInsideGroup = pIdx;
+            break;
+        }
+    }
+
+    if (currentGroupIndex === -1) return;
+    const currentGroup = groups[currentGroupIndex];
+
+    if (direction === 'ArrowLeft') {
+        if (currentNodeIndexInsideGroup > 0) {
+            selectNode(currentGroup[currentNodeIndexInsideGroup - 1].id);
+        }
+    } else if (direction === 'ArrowRight') {
+        if (currentNodeIndexInsideGroup < currentGroup.length - 1) {
+            selectNode(currentGroup[currentNodeIndexInsideGroup + 1].id);
+        }
+    } else if (direction === 'ArrowUp') {
+        if (currentGroupIndex > 0) {
+            const previousGroup = groups[currentGroupIndex - 1];
+            selectNode(previousGroup[previousGroup.length - 1].id);
+        }
+    } else if (direction === 'ArrowDown') {
+        if (currentGroupIndex < groups.length - 1) {
+            const nextGroup = groups[currentGroupIndex + 1];
+            selectNode(nextGroup[nextGroup.length - 1].id);
+        }
+    }
+}
+
 function renderTimeline() {
     timelineContainer.innerHTML = '';
+
+    // Group consecutive nodes with the same prompt
+    const groups = [];
     currentTimeline.forEach(node => {
-        const el = document.createElement('div');
-        el.className = `timeline-node ${node.id === activeNodeId ? 'active' : ''}`;
+        if (groups.length === 0) {
+            groups.push([node]);
+        } else {
+            const lastGroup = groups[groups.length - 1];
+            const lastNode = lastGroup[lastGroup.length - 1];
+            if (node.params.prompt === lastNode.params.prompt) {
+                lastGroup.push(node);
+            } else {
+                groups.push([node]);
+            }
+        }
+    });
+
+    groups.forEach(group => {
+        // Find which node to show. If the activeNodeId is in this group, show it.
+        // Otherwise, show the last node in the group.
+        let visibleIndex = group.length - 1;
+        const activeIdx = group.findIndex(n => n.id === activeNodeId);
+        if (activeIdx !== -1) {
+            visibleIndex = activeIdx;
+        }
+
+        const visibleNode = group[visibleIndex];
+        const isGroupActive = activeIdx !== -1;
+
+        // Create Container
+        const elGroup = document.createElement('div');
+        elGroup.className = `timeline-node-group ${isGroupActive ? 'active' : ''}`;
+
+        // Header (if grouped)
+        if (group.length > 1) {
+            const header = document.createElement('div');
+            header.className = 'timeline-node-group-header';
+
+            const title = document.createElement('span');
+            title.textContent = `Variation ${visibleIndex + 1} of ${group.length}`;
+
+            const nav = document.createElement('div');
+            nav.className = 'timeline-node-group-nav';
+
+            const btnPrev = document.createElement('button');
+            btnPrev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+            btnPrev.disabled = visibleIndex === 0;
+            btnPrev.onclick = (e) => {
+                e.stopPropagation();
+                selectNode(group[visibleIndex - 1].id);
+            };
+
+            const btnNext = document.createElement('button');
+            btnNext.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+            btnNext.disabled = visibleIndex === group.length - 1;
+            btnNext.onclick = (e) => {
+                e.stopPropagation();
+                selectNode(group[visibleIndex + 1].id);
+            };
+
+            nav.appendChild(btnPrev);
+            nav.appendChild(btnNext);
+            header.appendChild(title);
+            header.appendChild(nav);
+            elGroup.appendChild(header);
+        }
+
+        // Render the visible node
+        const elNode = document.createElement('div');
+        elNode.className = `timeline-node ${group.length > 1 ? 'grouped' : ''} ${isGroupActive ? 'active' : ''}`;
 
         let thumbUrl = '';
-        if (node.image_filename && node.status === 'completed') {
-            thumbUrl = `${API_URL}/projects/${currentProject.id}/images/${node.image_filename}`;
+        if (visibleNode.image_filename && visibleNode.status === 'completed') {
+            thumbUrl = `${API_URL}/projects/${currentProject.id}/images/${visibleNode.image_filename}`;
         }
 
         const thumbStyle = thumbUrl ? `background-image: url('${thumbUrl}')` : '';
         let thumbIcon = '';
+
         if (!thumbUrl) {
-            if (node.status === 'error') {
+            if (visibleNode.status === 'error') {
                 thumbIcon = '<i class="fa-solid fa-triangle-exclamation" style="color: var(--danger);"></i>';
-            } else if (node.status === 'generating') {
+            } else if (visibleNode.status === 'generating') {
                 thumbIcon = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div>';
             } else {
                 thumbIcon = '<i class="fa-solid fa-hourglass-half"></i>';
             }
         }
 
-        el.innerHTML = `
+        const rawPrompt = visibleNode.params.prompt_template || visibleNode.params.prompt || 'Empty prompt';
+
+        elNode.innerHTML = `
             <div class="node-thumb" style="${thumbStyle}">${thumbIcon}</div>
             <div class="node-info">
-                <div class="node-prompt">${node.params.prompt || 'Empty prompt'}</div>
-                <div class="node-meta">${node.params.seed} · ${node.params.steps} steps</div>
+                <div class="node-prompt">${rawPrompt}</div>
+                <div class="node-meta">${visibleNode.params.seed} · ${visibleNode.params.steps} steps</div>
             </div>
         `;
 
-        el.addEventListener('click', () => selectNode(node.id));
-        timelineContainer.appendChild(el);
+        elNode.addEventListener('click', () => selectNode(visibleNode.id));
+        elGroup.appendChild(elNode);
+
+        timelineContainer.appendChild(elGroup);
     });
 }
 
@@ -703,6 +840,14 @@ function selectNode(id) {
     }
 
     renderTimeline();
+
+    // Auto-scroll the timeline to the newly active group
+    setTimeout(() => {
+        const activeEl = timelineContainer.querySelector('.timeline-node-group.active');
+        if (activeEl) {
+            activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }, 50);
 }
 
 async function generateImage() {

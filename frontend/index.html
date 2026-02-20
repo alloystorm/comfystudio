@@ -301,20 +301,14 @@
                             style="color: var(--text-muted); text-align: right; margin-top: -10px;">Final Size: 1024 ×
                             1024</small>
                     </div>
-                    <button id="btn-generate" class="primary-btn generate-btn" title="Ctrl+Enter">
-                        <i class="fa-solid fa-bolt"></i> Generate
-                    </button>
-                    <div style="display: flex; gap: 0.5rem; margin-top: -10px;">
-                        <button id="btn-iterate" class="action-btn" title="Shift+Enter"
-                            style="flex: 1; justify-content: center; border-radius: var(--radius-md); padding: 0.6rem;">
-                            <i class="fa-solid fa-forward-step"></i> Iterate (Seed +1)
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button id="btn-generate" class="primary-btn generate-btn" title="Ctrl+Enter" style="flex: 1;">
+                            <i class="fa-solid fa-bolt"></i> Generate
                         </button>
-                        <label class="icon-toggle" title="Auto-iterate every 3 seconds" id="label-slideshow"
-                            style="flex: 0 0 auto; padding: 0.6rem 1rem; border-radius: var(--radius-md); background: var(--bg-surface-hover); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                            <input type="checkbox" id="toggle-slideshow"
-                                style="margin-right: 0.5rem; margin-bottom: 0;">
+                        <button id="btn-slideshow" class="action-btn" title="Start Slideshow (Auto-Iterate)"
+                            style="flex: 0 0 auto; padding: 0.85rem 1rem; border-radius: var(--radius-md); background: var(--bg-surface-hover); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer;">
                             <i class="fa-solid fa-play"></i>
-                        </label>
+                        </button>
                     </div>
                     <button id="btn-branch" class="action-btn"
                         style="width: 100%; justify-content: center; margin-top: -5px; border-radius: var(--radius-md); padding: 0.6rem;">
