@@ -143,7 +143,15 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Prompt</label>
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            Prompt
+                            <div class="tag-inserters" style="display: flex; gap: 0.5rem;">
+                                <button class="tag-btn" type="button" data-tag="{character}">+ Char</button>
+                                <button class="tag-btn" type="button" data-tag="{location}">+ Loc</button>
+                                <button class="tag-btn" type="button" data-tag="{environment}">+ Env</button>
+                                <button class="tag-btn" type="button" data-tag="{style}">+ Style</button>
+                            </div>
+                        </label>
                         <textarea id="input-prompt" rows="4" placeholder="Describe what you want to see..."></textarea>
                     </div>
                     <div class="form-group">
@@ -163,7 +171,8 @@
                             <label>Seed</label>
                             <div class="input-with-btn">
                                 <input type="number" id="input-seed" value="123456789">
-                                <button id="btn-random-seed" title="Randomize"><i class="fa-solid fa-dice"></i></button>
+                                <label class="icon-toggle" title="Randomize seed on generate"><input type="checkbox"
+                                        id="rand-seed"> <i class="fa-solid fa-dice"></i></label>
                             </div>
                         </div>
                     </div>

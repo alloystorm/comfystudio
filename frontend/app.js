@@ -31,7 +31,7 @@ const elWidth = document.getElementById('input-width');
 const elAspectRatio = document.getElementById('input-aspect-ratio');
 const elOrientation = document.getElementById('input-orientation');
 const elDimensions = document.getElementById('text-dimensions');
-const btnRandomSeed = document.getElementById('btn-random-seed');
+const randSeed = document.getElementById('rand-seed');
 const btnGenerate = document.getElementById('btn-generate');
 const btnIterate = document.getElementById('btn-iterate');
 
@@ -147,8 +147,16 @@ function initEvents() {
         }
     });
 
-    btnRandomSeed.addEventListener('click', () => {
-        elSeed.value = Math.floor(Math.random() * 1000000000);
+    // Tag inserters
+    document.querySelectorAll('.tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tag = btn.getAttribute('data-tag');
+            const pos = elPrompt.selectionStart;
+            const text = elPrompt.value;
+            elPrompt.value = text.substring(0, pos) + tag + text.substring(elPrompt.selectionEnd);
+            elPrompt.selectionStart = elPrompt.selectionEnd = pos + tag.length;
+            elPrompt.focus();
+        });
     });
 
     btnGenerate.addEventListener('click', async () => {
@@ -160,8 +168,10 @@ function initEvents() {
     });
 
     btnIterate.addEventListener('click', async () => {
-        const currentSeed = parseInt(elSeed.value) || 0;
-        elSeed.value = currentSeed + 1;
+        if (!randSeed.checked) {
+            const currentSeed = parseInt(elSeed.value) || 0;
+            elSeed.value = currentSeed + 1;
+        }
         await generateImage();
     });
 
@@ -422,6 +432,10 @@ function selectNode(id) {
 
 async function generateImage() {
     if (!currentProject) return;
+
+    if (randSeed.checked) {
+        elSeed.value = Math.floor(Math.random() * 1000000000);
+    }
 
     const rawPrompt = elPrompt.value;
     const tv = {};
