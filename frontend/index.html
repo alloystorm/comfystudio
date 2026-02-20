@@ -19,6 +19,7 @@
             </div>
             <div class="header-actions">
                 <button id="btn-dashboard" class="nav-btn active">Dashboard</button>
+                <button id="btn-settings" class="nav-btn"><i class="fa-solid fa-gear"></i></button>
             </div>
         </header>
 
@@ -30,6 +31,37 @@
             </div>
             <div id="project-grid" class="project-grid">
                 <!-- Projects injected by JS -->
+            </div>
+        </main>
+
+        <!-- SETTINGS VIEW -->
+        <main id="view-settings" class="view">
+            <div class="settings-container" style="max-width: 800px; margin: 0 auto; width: 100%; padding-top: 2rem;">
+                <div class="dashboard-header">
+                    <h2>Prompt Templates</h2>
+                    <button id="btn-save-templates" class="primary-btn"><i class="fa-solid fa-save"></i> Save</button>
+                </div>
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">Edit the options for your prompt tags.
+                    Enter one item per line.</p>
+
+                <div class="template-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div class="form-group">
+                        <label>Characters {character}</label>
+                        <textarea id="edit-characters" rows="8"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Locations {location}</label>
+                        <textarea id="edit-locations" rows="8"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Environments {environment}</label>
+                        <textarea id="edit-environments" rows="8"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Styles {style}</label>
+                        <textarea id="edit-styles" rows="8"></textarea>
+                    </div>
+                </div>
             </div>
         </main>
 
@@ -78,6 +110,37 @@
                             <option value="t2i_ZIT">Text to Image (Z Image Turbo)</option>
                             <option value="i2v_wan22">Image to Video (Wan 2.2V)</option>
                         </select>
+                    </div>
+                    <div class="form-group template-vars">
+                        <label style="display: flex; justify-content: space-between;">Prompt Tags Variables</label>
+                        <div class="form-row">
+                            <select id="sel-character">
+                                <option value="">-- Character --</option>
+                            </select>
+                            <label class="icon-toggle" title="Randomize value"><input type="checkbox"
+                                    id="rand-character"> <i class="fa-solid fa-dice"></i></label>
+                        </div>
+                        <div class="form-row">
+                            <select id="sel-location">
+                                <option value="">-- Location --</option>
+                            </select>
+                            <label class="icon-toggle" title="Randomize value"><input type="checkbox"
+                                    id="rand-location"> <i class="fa-solid fa-dice"></i></label>
+                        </div>
+                        <div class="form-row">
+                            <select id="sel-environment">
+                                <option value="">-- Environment --</option>
+                            </select>
+                            <label class="icon-toggle" title="Randomize value"><input type="checkbox"
+                                    id="rand-environment"> <i class="fa-solid fa-dice"></i></label>
+                        </div>
+                        <div class="form-row">
+                            <select id="sel-style">
+                                <option value="">-- Style --</option>
+                            </select>
+                            <label class="icon-toggle" title="Randomize value"><input type="checkbox" id="rand-style">
+                                <i class="fa-solid fa-dice"></i></label>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Prompt</label>

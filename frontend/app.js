@@ -6,12 +6,16 @@ let currentProject = null;
 let currentTimeline = [];
 let activeNodeId = null;
 let availableModels = { checkpoints: [], unets: [] };
+let currentTemplates = { characters: [], locations: [], environments: [], styles: [] };
 
 // DOM Elements
 const viewDashboard = document.getElementById('view-dashboard');
 const viewWorkspace = document.getElementById('view-workspace');
+const viewSettings = document.getElementById('view-settings');
 const btnDashboard = document.getElementById('btn-dashboard');
+const btnSettings = document.getElementById('btn-settings');
 const btnNewProject = document.getElementById('btn-new-project');
+const btnSaveTemplates = document.getElementById('btn-save-templates');
 const projectGrid = document.getElementById('project-grid');
 const timelineContainer = document.getElementById('timeline-container');
 
@@ -31,6 +35,20 @@ const btnRandomSeed = document.getElementById('btn-random-seed');
 const btnGenerate = document.getElementById('btn-generate');
 const btnIterate = document.getElementById('btn-iterate');
 
+// Template Elements
+const editCharacters = document.getElementById('edit-characters');
+const editLocations = document.getElementById('edit-locations');
+const editEnvironments = document.getElementById('edit-environments');
+const editStyles = document.getElementById('edit-styles');
+const selCharacter = document.getElementById('sel-character');
+const selLocation = document.getElementById('sel-location');
+const selEnvironment = document.getElementById('sel-environment');
+const selStyle = document.getElementById('sel-style');
+const randCharacter = document.getElementById('rand-character');
+const randLocation = document.getElementById('rand-location');
+const randEnvironment = document.getElementById('rand-environment');
+const randStyle = document.getElementById('rand-style');
+
 // Canvas Elements
 const activeImage = document.getElementById('active-image');
 const canvasPlaceholder = document.getElementById('canvas-placeholder');
@@ -40,6 +58,7 @@ const generationLoader = document.getElementById('generation-loader');
 document.addEventListener('DOMContentLoaded', async () => {
     initEvents();
     await fetchModels();
+    await fetchTemplates();
     loadDashboard();
 });
 
@@ -51,6 +70,34 @@ async function fetchModels() {
     } catch (e) {
         console.error("Failed to fetch models", e);
     }
+}
+
+async function fetchTemplates() {
+    try {
+        const res = await fetch(`${API_URL}/templates`);
+        currentTemplates = await res.json();
+        populateTemplateDropdowns();
+    } catch (e) {
+        console.error("Failed to fetch templates", e);
+    }
+}
+
+function populateTemplateDropdowns() {
+    const drops = [
+        { el: selCharacter, list: currentTemplates.characters, label: 'Character' },
+        { el: selLocation, list: currentTemplates.locations, label: 'Location' },
+        { el: selEnvironment, list: currentTemplates.environments, label: 'Environment' },
+        { el: selStyle, list: currentTemplates.styles, label: 'Style' },
+    ];
+
+    drops.forEach(d => {
+        d.el.innerHTML = `<option value="">-- ${d.label} --</option>`;
+        d.list.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = opt.textContent = item;
+            d.el.appendChild(opt);
+        });
+    });
 }
 
 function updateModelDropdown() {
@@ -82,6 +129,15 @@ function initEvents() {
     btnDashboard.addEventListener('click', () => {
         showView('dashboard');
         loadDashboard();
+    });
+
+    btnSettings.addEventListener('click', () => {
+        showView('settings');
+        loadTemplateSettings();
+    });
+
+    btnSaveTemplates.addEventListener('click', async () => {
+        await saveTemplateSettings();
     });
 
     btnNewProject.addEventListener('click', async () => {
@@ -124,6 +180,34 @@ function initEvents() {
     elOrientation.addEventListener('change', updateDimensions);
 }
 
+function loadTemplateSettings() {
+    editCharacters.value = currentTemplates.characters.join('\n');
+    editLocations.value = currentTemplates.locations.join('\n');
+    editEnvironments.value = currentTemplates.environments.join('\n');
+    editStyles.value = currentTemplates.styles.join('\n');
+}
+
+async function saveTemplateSettings() {
+    const payload = {
+        characters: editCharacters.value.split('\n').map(s => s.trim()).filter(s => s),
+        locations: editLocations.value.split('\n').map(s => s.trim()).filter(s => s),
+        environments: editEnvironments.value.split('\n').map(s => s.trim()).filter(s => s),
+        styles: editStyles.value.split('\n').map(s => s.trim()).filter(s => s)
+    };
+    try {
+        const res = await fetch(`${API_URL}/templates`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        currentTemplates = await res.json();
+        populateTemplateDropdowns();
+        showView('workspace'); // Return automatically
+    } catch (e) {
+        console.error("Failed to save templates", e);
+    }
+}
+
 function getCalculatedHeight() {
     let width = parseInt(elWidth.value) || 1024;
     const ar = elAspectRatio.value;
@@ -152,11 +236,16 @@ function updateDimensions() {
 function showView(viewName) {
     viewDashboard.classList.remove('active');
     viewWorkspace.classList.remove('active');
+    viewSettings.classList.remove('active');
     btnDashboard.classList.remove('active');
+    btnSettings.classList.remove('active');
 
     if (viewName === 'dashboard') {
         viewDashboard.classList.add('active');
         btnDashboard.classList.add('active');
+    } else if (viewName === 'settings') {
+        viewSettings.classList.add('active');
+        btnSettings.classList.add('active');
     } else {
         viewWorkspace.classList.add('active');
     }
@@ -276,7 +365,7 @@ function selectNode(id) {
     // Populate settings
     if (node.params.workflow) elWorkflow.value = node.params.workflow;
     updateModelDropdown();
-    elPrompt.value = node.params.prompt;
+    elPrompt.value = node.params.prompt_template || node.params.prompt; // Show raw prompt
     elNegative.value = node.params.negative_prompt;
     if (node.params.model) elModel.value = node.params.model;
     elSeed.value = node.params.seed;
@@ -285,6 +374,16 @@ function selectNode(id) {
     if (node.params.width) elWidth.value = node.params.width;
     if (node.params.aspect_ratio) elAspectRatio.value = node.params.aspect_ratio;
     if (node.params.orientation) elOrientation.value = node.params.orientation;
+
+    if (node.params.template_values) {
+        selCharacter.value = node.params.template_values.character || '';
+        selLocation.value = node.params.template_values.location || '';
+        selEnvironment.value = node.params.template_values.environment || '';
+        selStyle.value = node.params.template_values.style || '';
+    } else {
+        selCharacter.value = ''; selLocation.value = ''; selEnvironment.value = ''; selStyle.value = '';
+    }
+
     updateDimensions();
 
     // Show image
@@ -324,9 +423,54 @@ function selectNode(id) {
 async function generateImage() {
     if (!currentProject) return;
 
+    const rawPrompt = elPrompt.value;
+    const tv = {};
+
+    // Resolve randomizers and populate template values
+    if (randCharacter.checked && currentTemplates.characters.length) {
+        tv.character = currentTemplates.characters[Math.floor(Math.random() * currentTemplates.characters.length)];
+        selCharacter.value = tv.character; // update UI
+    } else {
+        tv.character = selCharacter.value;
+    }
+
+    if (randLocation.checked && currentTemplates.locations.length) {
+        tv.location = currentTemplates.locations[Math.floor(Math.random() * currentTemplates.locations.length)];
+        selLocation.value = tv.location;
+    } else {
+        tv.location = selLocation.value;
+    }
+
+    if (randEnvironment.checked && currentTemplates.environments.length) {
+        tv.environment = currentTemplates.environments[Math.floor(Math.random() * currentTemplates.environments.length)];
+        selEnvironment.value = tv.environment;
+    } else {
+        tv.environment = selEnvironment.value;
+    }
+
+    if (randStyle.checked && currentTemplates.styles.length) {
+        tv.style = currentTemplates.styles[Math.floor(Math.random() * currentTemplates.styles.length)];
+        selStyle.value = tv.style;
+    } else {
+        tv.style = selStyle.value;
+    }
+
+    let finalPrompt = rawPrompt;
+    if (tv.character) finalPrompt = finalPrompt.replace(/\{character\}/gi, tv.character);
+    if (tv.location) finalPrompt = finalPrompt.replace(/\{location\}/gi, tv.location);
+    if (tv.environment) finalPrompt = finalPrompt.replace(/\{environment\}/gi, tv.environment);
+    if (tv.style) finalPrompt = finalPrompt.replace(/\{style\}/gi, tv.style);
+
+    const tvClean = {};
+    for (const [k, v] of Object.entries(tv)) {
+        if (v) tvClean[k] = v;
+    }
+
     const params = {
         workflow: elWorkflow.value,
-        prompt: elPrompt.value,
+        prompt: finalPrompt,
+        prompt_template: rawPrompt,
+        template_values: tvClean,
         negative_prompt: elNegative.value,
         model: elModel.value,
         seed: parseInt(elSeed.value),

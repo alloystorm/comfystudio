@@ -8,9 +8,10 @@ from pathlib import Path
 from pydantic import BaseModel
 import websockets
 
-from models import Project, GenerationNode, GenerationParams, GenerateRequest, AvailableModels
+from models import Project, GenerationNode, GenerationParams, GenerateRequest, AvailableModels, TemplateList
 import projects
 import comfyui
+import templates
 
 app = FastAPI(title="ComfyStudio API")
 
@@ -58,6 +59,15 @@ async def health_check():
 async def get_models():
     models = comfyui.get_available_models()
     return AvailableModels(checkpoints=models["checkpoints"], unets=models["unets"])
+
+@app.get("/api/templates", response_model=TemplateList)
+async def list_templates():
+    return templates.get_templates()
+
+@app.post("/api/templates", response_model=TemplateList)
+async def update_templates(params: TemplateList):
+    templates.save_templates(params)
+    return params
 
 @app.get("/api/projects", response_model=List[Project])
 async def list_projects():

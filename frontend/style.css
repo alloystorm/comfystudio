@@ -485,4 +485,31 @@ textarea {
     to {
         transform: rotate(360deg);
     }
+}/* Icon toggle styles */
+.icon-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    padding: 0.6rem;
+    transition: all 0.2s;
+}
+
+.icon-toggle input {
+    display: none;
+}
+
+.icon-toggle:hover {
+    color: var(--text-secondary);
+    border-color: var(--border-light);
+}
+
+.icon-toggle:has(input:checked) {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(124, 58, 237, 0.1);
 }
