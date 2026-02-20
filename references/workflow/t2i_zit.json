@@ -1,185 +1,196 @@
 {
-  "3": {
-    "inputs": {
-      "seed": 931,
-      "steps": 9,
-      "cfg": 1,
-      "sampler_name": "euler",
-      "scheduler": "simple",
-      "denoise": 1,
-      "model": [
-        "28",
-        0
-      ],
-      "positive": [
-        "6",
-        0
-      ],
-      "negative": [
-        "6",
-        0
-      ],
-      "latent_image": [
-        "13",
-        0
-      ]
+  "data": {
+    "3": {
+      "inputs": {
+        "seed": 931,
+        "steps": 9,
+        "cfg": 1,
+        "sampler_name": "euler",
+        "scheduler": "simple",
+        "denoise": 1,
+        "model": [
+          "28",
+          0
+        ],
+        "positive": [
+          "6",
+          0
+        ],
+        "negative": [
+          "6",
+          0
+        ],
+        "latent_image": [
+          "13",
+          0
+        ]
+      },
+      "class_type": "KSampler",
+      "_meta": {
+        "title": "KSampler"
+      }
     },
-    "class_type": "KSampler",
-    "_meta": {
-      "title": "KSampler"
+    "6": {
+      "inputs": {
+        "text": "coniltralution art style: acrylic painting beautiful girl in a photoshot session, traditional chinese outfit, revealing, sexy, boobs exposed.",
+        "clip": [
+          "28",
+          1
+        ]
+      },
+      "class_type": "CLIPTextEncode",
+      "_meta": {
+        "title": "CLIP Text Encode (Positive Prompt)"
+      }
+    },
+    "7": {
+      "inputs": {
+        "text": "blurry ugly bad",
+        "clip": [
+          "28",
+          1
+        ]
+      },
+      "class_type": "CLIPTextEncode",
+      "_meta": {
+        "title": "CLIP Text Encode (Negative Prompt)"
+      }
+    },
+    "8": {
+      "inputs": {
+        "samples": [
+          "3",
+          0
+        ],
+        "vae": [
+          "17",
+          0
+        ]
+      },
+      "class_type": "VAEDecode",
+      "_meta": {
+        "title": "VAE Decode"
+      }
+    },
+    "9": {
+      "inputs": {
+        "filename_prefix": "ComfyUI",
+        "images": [
+          "8",
+          0
+        ]
+      },
+      "class_type": "SaveImage",
+      "_meta": {
+        "title": "Save Image"
+      }
+    },
+    "13": {
+      "inputs": {
+        "width": 1024,
+        "height": 1440,
+        "batch_size": 1
+      },
+      "class_type": "EmptySD3LatentImage",
+      "_meta": {
+        "title": "EmptySD3LatentImage"
+      }
+    },
+    "16": {
+      "inputs": {
+        "unet_name": "z_image_turbo_bf16.safetensors",
+        "weight_dtype": "default"
+      },
+      "class_type": "UNETLoader",
+      "_meta": {
+        "title": "Load Diffusion Model"
+      }
+    },
+    "17": {
+      "inputs": {
+        "vae_name": "ae.safetensors"
+      },
+      "class_type": "VAELoader",
+      "_meta": {
+        "title": "Load VAE"
+      }
+    },
+    "18": {
+      "inputs": {
+        "clip_name": "qwen_3_4b.safetensors",
+        "type": "lumina2",
+        "device": "default"
+      },
+      "class_type": "CLIPLoader",
+      "_meta": {
+        "title": "Load CLIP"
+      }
+    },
+    "28": {
+      "inputs": {
+        "lora_name": "Illustration_E16.safetensors",
+        "strength_model": 1,
+        "strength_clip": 1,
+        "model": [
+          "16",
+          0
+        ],
+        "clip": [
+          "18",
+          0
+        ]
+      },
+      "class_type": "LoraLoader",
+      "_meta": {
+        "title": "Load LoRA (Model and CLIP)"
+      }
+    },
+    "34": {
+      "inputs": {
+        "image": "000013.jpg"
+      },
+      "class_type": "LoadImage",
+      "_meta": {
+        "title": "Load Image"
+      }
+    },
+    "35": {
+      "inputs": {
+        "longer_edge": 1024,
+        "images": [
+          "34",
+          0
+        ]
+      },
+      "class_type": "ResizeImagesByLongerEdge",
+      "_meta": {
+        "title": "Resize Images by Longer Edge"
+      }
+    },
+    "36": {
+      "inputs": {
+        "pixels": [
+          "35",
+          0
+        ],
+        "vae": [
+          "17",
+          0
+        ]
+      },
+      "class_type": "VAEEncode",
+      "_meta": {
+        "title": "VAE Encode"
+      }
     }
   },
-  "6": {
-    "inputs": {
-      "text": "coniltralution art style: acrylic painting beautiful girl in a photoshot session, traditional chinese outfit, revealing, sexy, boobs exposed.",
-      "clip": [
-        "28",
-        1
-      ]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP Text Encode (Positive Prompt)"
-    }
-  },
-  "7": {
-    "inputs": {
-      "text": "blurry ugly bad",
-      "clip": [
-        "28",
-        1
-      ]
-    },
-    "class_type": "CLIPTextEncode",
-    "_meta": {
-      "title": "CLIP Text Encode (Negative Prompt)"
-    }
-  },
-  "8": {
-    "inputs": {
-      "samples": [
-        "3",
-        0
-      ],
-      "vae": [
-        "17",
-        0
-      ]
-    },
-    "class_type": "VAEDecode",
-    "_meta": {
-      "title": "VAE Decode"
-    }
-  },
-  "9": {
-    "inputs": {
-      "filename_prefix": "ComfyUI",
-      "images": [
-        "8",
-        0
-      ]
-    },
-    "class_type": "SaveImage",
-    "_meta": {
-      "title": "Save Image"
-    }
-  },
-  "13": {
-    "inputs": {
-      "width": 1024,
-      "height": 1440,
-      "batch_size": 1
-    },
-    "class_type": "EmptySD3LatentImage",
-    "_meta": {
-      "title": "EmptySD3LatentImage"
-    }
-  },
-  "16": {
-    "inputs": {
-      "unet_name": "z_image_turbo_bf16.safetensors",
-      "weight_dtype": "default"
-    },
-    "class_type": "UNETLoader",
-    "_meta": {
-      "title": "Load Diffusion Model"
-    }
-  },
-  "17": {
-    "inputs": {
-      "vae_name": "ae.safetensors"
-    },
-    "class_type": "VAELoader",
-    "_meta": {
-      "title": "Load VAE"
-    }
-  },
-  "18": {
-    "inputs": {
-      "clip_name": "qwen_3_4b.safetensors",
-      "type": "lumina2",
-      "device": "default"
-    },
-    "class_type": "CLIPLoader",
-    "_meta": {
-      "title": "Load CLIP"
-    }
-  },
-  "28": {
-    "inputs": {
-      "lora_name": "Illustration_E16.safetensors",
-      "strength_model": 1,
-      "strength_clip": 1,
-      "model": [
-        "16",
-        0
-      ],
-      "clip": [
-        "18",
-        0
-      ]
-    },
-    "class_type": "LoraLoader",
-    "_meta": {
-      "title": "Load LoRA (Model and CLIP)"
-    }
-  },
-  "34": {
-    "inputs": {
-      "image": "000013.jpg"
-    },
-    "class_type": "LoadImage",
-    "_meta": {
-      "title": "Load Image"
-    }
-  },
-  "35": {
-    "inputs": {
-      "longer_edge": 1024,
-      "images": [
-        "34",
-        0
-      ]
-    },
-    "class_type": "ResizeImagesByLongerEdge",
-    "_meta": {
-      "title": "Resize Images by Longer Edge"
-    }
-  },
-  "36": {
-    "inputs": {
-      "pixels": [
-        "35",
-        0
-      ],
-      "vae": [
-        "17",
-        0
-      ]
-    },
-    "class_type": "VAEEncode",
-    "_meta": {
-      "title": "VAE Encode"
-    }
+  "map": {
+    "sampler": "3",
+    "positive_prompt": "6",
+    "negative_prompt": "7",
+    "model": "16",
+    "model_field": "unet_name",
+    "latent": "13",
+    "save": "9"
   }
 }

@@ -7,17 +7,35 @@ let currentTimeline = [];
 let activeNodeId = null;
 let availableModels = { checkpoints: [], unets: [] };
 let currentTemplates = { characters: [], locations: [], environments: [], styles: [] };
+let availableWorkflows = {};
 
 // DOM Elements
-const viewDashboard = document.getElementById('view-dashboard');
 const viewWorkspace = document.getElementById('view-workspace');
-const viewSettings = document.getElementById('view-settings');
-const btnDashboard = document.getElementById('btn-dashboard');
 const btnSettings = document.getElementById('btn-settings');
 const btnNewProject = document.getElementById('btn-new-project');
-const btnSaveTemplates = document.getElementById('btn-save-templates');
-const projectGrid = document.getElementById('project-grid');
 const timelineContainer = document.getElementById('timeline-container');
+
+// Dropdown & Modal Elements
+const projectSelector = document.getElementById('project-selector');
+const btnProjectDropdown = document.getElementById('btn-project-dropdown');
+const projectList = document.getElementById('project-list');
+const labelCurrentProject = document.getElementById('label-current-project');
+const modalSettings = document.getElementById('modal-settings');
+const btnCloseSettings = document.getElementById('btn-close-settings');
+const btnSaveTemplates = document.getElementById('btn-save-templates');
+
+const editSelWorkflow = document.getElementById('edit-sel-workflow');
+const btnNewWorkflow = document.getElementById('btn-new-workflow');
+const btnSaveWorkflow = document.getElementById('btn-save-workflow');
+const editWfJson = document.getElementById('edit-wf-json');
+const editWfName = document.getElementById('edit-wf-name');
+const editWfSampler = document.getElementById('edit-wf-sampler');
+const editWfPos = document.getElementById('edit-wf-pos');
+const editWfNeg = document.getElementById('edit-wf-neg');
+const editWfModel = document.getElementById('edit-wf-model');
+const editWfModelField = document.getElementById('edit-wf-model-field');
+const editWfLatent = document.getElementById('edit-wf-latent');
+const editWfSave = document.getElementById('edit-wf-save');
 
 // Settings Elements
 const elWorkflow = document.getElementById('input-workflow');
@@ -59,6 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initEvents();
     await fetchModels();
     await fetchTemplates();
+    await fetchWorkflows();
     loadDashboard();
 });
 
@@ -126,19 +145,58 @@ function updateModelDropdown() {
 }
 
 function initEvents() {
-    btnDashboard.addEventListener('click', () => {
-        showView('dashboard');
-        loadDashboard();
+    btnProjectDropdown.addEventListener('click', (e) => {
+        e.stopPropagation();
+        projectSelector.classList.toggle('active');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!projectSelector.contains(e.target)) {
+            projectSelector.classList.remove('active');
+        }
     });
 
     btnSettings.addEventListener('click', () => {
-        showView('settings');
+        modalSettings.classList.add('active');
         loadTemplateSettings();
+        populateSettingsWorkflows();
+    });
+
+    btnCloseSettings.addEventListener('click', () => {
+        modalSettings.classList.remove('active');
+        populateWorkflowDropdownMain(); // Update main UI on close
+    });
+
+    // Modal Tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(btn.getAttribute('data-tab')).classList.add('active');
+        });
     });
 
     btnSaveTemplates.addEventListener('click', async () => {
         await saveTemplateSettings();
     });
+
+    editSelWorkflow.addEventListener('change', () => loadWorkflowSettings(editSelWorkflow.value));
+
+    btnNewWorkflow.addEventListener('click', () => {
+        editSelWorkflow.value = "";
+        editWfName.value = "new_workflow";
+        editWfJson.value = "{\n  \n}";
+        editWfSampler.value = "";
+        editWfPos.value = "";
+        editWfNeg.value = "";
+        editWfModel.value = "";
+        editWfModelField.value = "";
+        editWfLatent.value = "";
+        editWfSave.value = "";
+    });
+
+    btnSaveWorkflow.addEventListener('click', async () => await saveWorkflowSettings());
 
     btnNewProject.addEventListener('click', async () => {
         const name = prompt("Enter project name:");
@@ -212,10 +270,105 @@ async function saveTemplateSettings() {
         });
         currentTemplates = await res.json();
         populateTemplateDropdowns();
-        showView('workspace'); // Return automatically
+        btnSaveTemplates.innerHTML = '<i class="fa-solid fa-check"></i> Saved!';
+        setTimeout(() => btnSaveTemplates.innerHTML = '<i class="fa-solid fa-save"></i> Save Templates', 2000);
     } catch (e) {
         console.error("Failed to save templates", e);
     }
+}
+
+async function fetchWorkflows() {
+    try {
+        const res = await fetch(`${API_URL}/workflows`);
+        availableWorkflows = await res.json();
+        populateWorkflowDropdownMain();
+    } catch (e) { console.error(e); }
+}
+
+function populateWorkflowDropdownMain() {
+    const val = elWorkflow.value;
+    elWorkflow.innerHTML = '';
+    for (const [name, wf] of Object.entries(availableWorkflows)) {
+        const opt = document.createElement('option');
+        opt.value = name;
+
+        let label = name;
+        if (name === "t2i_sdxl") label = "Text to Image (SDXL/Pony)";
+        else if (name === "t2i_ZIT") label = "Text to Image (Z Image Turbo)";
+        else if (name === "i2v_wan22") label = "Image to Video (Wan 2.2V)";
+
+        opt.textContent = label;
+        elWorkflow.appendChild(opt);
+    }
+    if (availableWorkflows[val]) elWorkflow.value = val;
+    updateModelDropdown();
+}
+
+function populateSettingsWorkflows() {
+    editSelWorkflow.innerHTML = '<option value="">-- Custom New --</option>';
+    for (const name of Object.keys(availableWorkflows)) {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        editSelWorkflow.appendChild(opt);
+    }
+    if (Object.keys(availableWorkflows).length > 0) {
+        editSelWorkflow.value = Object.keys(availableWorkflows)[0];
+        loadWorkflowSettings(editSelWorkflow.value);
+    }
+}
+
+function loadWorkflowSettings(name) {
+    if (!name || !availableWorkflows[name]) return;
+    const wf = availableWorkflows[name];
+    editWfName.value = name;
+    editWfJson.value = JSON.stringify(wf.data, null, 2);
+    editWfSampler.value = wf.map.sampler || "";
+    editWfPos.value = wf.map.positive_prompt || "";
+    editWfNeg.value = wf.map.negative_prompt || "";
+    editWfModel.value = wf.map.model || "";
+    editWfModelField.value = wf.map.model_field || "";
+    editWfLatent.value = wf.map.latent || "";
+    editWfSave.value = wf.map.save || "";
+}
+
+async function saveWorkflowSettings() {
+    const name = editWfName.value.trim();
+    if (!name) return alert("Please provide a Workflow API Name");
+
+    let data;
+    try {
+        data = JSON.parse(editWfJson.value);
+    } catch (e) {
+        return alert("Invalid JSON format for workflow data");
+    }
+
+    const payload = {
+        data: data,
+        map: {
+            sampler: editWfSampler.value.trim() || null,
+            positive_prompt: editWfPos.value.trim() || null,
+            negative_prompt: editWfNeg.value.trim() || null,
+            model: editWfModel.value.trim() || null,
+            model_field: editWfModelField.value.trim() || null,
+            latent: editWfLatent.value.trim() || null,
+            save: editWfSave.value.trim() || null
+        }
+    };
+
+    try {
+        const res = await fetch(`${API_URL}/workflows/${name}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        btnSaveWorkflow.innerHTML = '<i class="fa-solid fa-check"></i> Saved!';
+        setTimeout(() => btnSaveWorkflow.innerHTML = '<i class="fa-solid fa-save"></i> Save Workflow', 2000);
+
+        await fetchWorkflows(); // refresh
+        editSelWorkflow.value = name;
+    } catch (e) { console.error(e); alert("Failed to save workflow"); }
 }
 
 function getCalculatedHeight() {
@@ -244,21 +397,7 @@ function updateDimensions() {
 }
 
 function showView(viewName) {
-    viewDashboard.classList.remove('active');
-    viewWorkspace.classList.remove('active');
-    viewSettings.classList.remove('active');
-    btnDashboard.classList.remove('active');
-    btnSettings.classList.remove('active');
-
-    if (viewName === 'dashboard') {
-        viewDashboard.classList.add('active');
-        btnDashboard.classList.add('active');
-    } else if (viewName === 'settings') {
-        viewSettings.classList.add('active');
-        btnSettings.classList.add('active');
-    } else {
-        viewWorkspace.classList.add('active');
-    }
+    viewWorkspace.classList.add('active');
 }
 
 async function loadDashboard() {
@@ -266,10 +405,10 @@ async function loadDashboard() {
         const res = await fetch(`${API_URL}/projects`);
         const projects = await res.json();
 
-        projectGrid.innerHTML = '';
+        projectList.innerHTML = '';
         projects.forEach(p => {
-            const card = document.createElement('div');
-            card.className = 'project-card';
+            const el = document.createElement('a');
+            el.className = 'dropdown-item';
 
             // Get latest image if exists
             let thumbUrl = '';
@@ -285,16 +424,22 @@ async function loadDashboard() {
             const thumbStyle = thumbUrl ? `background-image: url('${thumbUrl}')` : '';
             const thumbIcon = thumbUrl ? '' : '<i class="fa-regular fa-image"></i>';
 
-            card.innerHTML = `
-                <div class="project-thumb" style="${thumbStyle}">${thumbIcon}</div>
-                <div class="project-info">
-                    <h3>${p.name}</h3>
-                    <p>${new Date(p.updated_at).toLocaleDateString()} · ${nodeIds.length} generations</p>
+            el.innerHTML = `
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <div style="width:30px; height:30px; ${thumbStyle} background-size:cover; border-radius:4px;">${thumbIcon}</div>
+                    <div>
+                        <h4>${p.name}</h4>
+                        <p>${nodeIds.length} gens</p>
+                    </div>
                 </div>
             `;
 
-            card.addEventListener('click', () => openProject(p.id));
-            projectGrid.appendChild(card);
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                openProject(p.id);
+                projectSelector.classList.remove('active');
+            });
+            projectList.appendChild(el);
         });
     } catch (e) {
         console.error("Error loading dashboard", e);
@@ -319,6 +464,7 @@ async function openProject(id) {
     try {
         const res = await fetch(`${API_URL}/projects/${id}`);
         currentProject = await res.json();
+        labelCurrentProject.textContent = currentProject.name;
 
         // Rebuild timeline structure (simple linear for now, based on timestamps)
         currentTimeline = Object.values(currentProject.nodes).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));

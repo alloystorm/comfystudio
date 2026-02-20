@@ -27,7 +27,20 @@ class TemplateList(BaseModel):
     locations: List[str] = ["indoors", "outdoors", "city", "forest"]
     environments: List[str] = ["day", "night", "raining", "snowing"]
     styles: List[str] = ["photography, highly detailed, raw", "anime, colorful, cel shaded", "oil painting, brush strokes"]
-    
+
+class WorkflowConfigMap(BaseModel):
+    sampler: Optional[str] = None
+    positive_prompt: Optional[str] = None
+    negative_prompt: Optional[str] = None
+    model: Optional[str] = None
+    model_field: Optional[str] = None
+    latent: Optional[str] = None
+    save: Optional[str] = None
+
+class WorkflowConfig(BaseModel):
+    data: dict
+    map: WorkflowConfigMap
+
 class GenerationNode(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     parent_id: Optional[str] = None

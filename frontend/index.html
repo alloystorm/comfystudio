@@ -17,53 +17,102 @@
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
                 <h1>ComfyStudio</h1>
             </div>
+            <div id="project-selector" class="dropdown">
+                <button class="nav-btn" id="btn-project-dropdown">
+                    <span id="label-current-project">Select Project...</span> <i class="fa-solid fa-chevron-down"></i>
+                </button>
+                <div class="dropdown-content" id="project-list">
+                    <!-- Projects populated here -->
+                </div>
+            </div>
             <div class="header-actions">
-                <button id="btn-dashboard" class="nav-btn active">Dashboard</button>
-                <button id="btn-settings" class="nav-btn"><i class="fa-solid fa-gear"></i></button>
+                <button id="btn-new-project" class="primary-btn"><i class="fa-solid fa-folder-plus"></i> New
+                    Project</button>
+                <button id="btn-settings" class="nav-btn" title="Settings"><i class="fa-solid fa-gear"></i></button>
             </div>
         </header>
 
-        <!-- DASHBOARD VIEW -->
-        <main id="view-dashboard" class="view active">
-            <div class="dashboard-header">
-                <h2>Recent Projects</h2>
-                <button id="btn-new-project" class="primary-btn"><i class="fa-solid fa-plus"></i> New Project</button>
-            </div>
-            <div id="project-grid" class="project-grid">
-                <!-- Projects injected by JS -->
-            </div>
-        </main>
-
-        <!-- SETTINGS VIEW -->
-        <main id="view-settings" class="view">
-            <div class="settings-container" style="max-width: 800px; margin: 0 auto; width: 100%; padding-top: 2rem;">
-                <div class="dashboard-header">
-                    <h2>Prompt Templates</h2>
-                    <button id="btn-save-templates" class="primary-btn"><i class="fa-solid fa-save"></i> Save</button>
+        <!-- SETTINGS MODAL -->
+        <div id="modal-settings" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Settings</h2>
+                    <button id="btn-close-settings" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <p style="color: var(--text-secondary); margin-bottom: 2rem;">Edit the options for your prompt tags.
-                    Enter one item per line.</p>
 
-                <div class="template-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-                    <div class="form-group">
-                        <label>Characters {character}</label>
-                        <textarea id="edit-characters" rows="8"></textarea>
+                <div class="modal-tabs">
+                    <button class="tab-btn active" data-tab="tab-templates">Prompt Templates</button>
+                    <button class="tab-btn" data-tab="tab-workflows">Workflow Templates</button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Templates Tab -->
+                    <div id="tab-templates" class="tab-content active">
+                        <div class="header-row">
+                            <p class="desc">Edit the options for your prompt tags. Enter one item per line.</p>
+                            <button id="btn-save-templates" class="primary-btn"><i class="fa-solid fa-save"></i> Save
+                                Templates</button>
+                        </div>
+                        <div class="template-grid">
+                            <div class="form-group"><label>Characters {character}</label><textarea id="edit-characters"
+                                    rows="12"></textarea></div>
+                            <div class="form-group"><label>Locations {location}</label><textarea id="edit-locations"
+                                    rows="12"></textarea></div>
+                            <div class="form-group"><label>Environments {environment}</label><textarea
+                                    id="edit-environments" rows="12"></textarea></div>
+                            <div class="form-group"><label>Styles {style}</label><textarea id="edit-styles"
+                                    rows="12"></textarea></div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Locations {location}</label>
-                        <textarea id="edit-locations" rows="8"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Environments {environment}</label>
-                        <textarea id="edit-environments" rows="8"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Styles {style}</label>
-                        <textarea id="edit-styles" rows="8"></textarea>
+
+                    <!-- Workflows Tab -->
+                    <div id="tab-workflows" class="tab-content">
+                        <div class="header-row" style="margin-bottom: 1rem;">
+                            <div style="display: flex; gap: 1rem; flex: 1; align-items: center;">
+                                <select id="edit-sel-workflow"
+                                    style="max-width: 300px; padding: 0.5rem; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-primary);"></select>
+                                <button id="btn-new-workflow" class="action-btn"><i class="fa-solid fa-plus"></i> New
+                                    Base</button>
+                            </div>
+                            <button id="btn-save-workflow" class="primary-btn"><i class="fa-solid fa-save"></i> Save
+                                Workflow</button>
+                        </div>
+
+                        <div class="workflow-editor"
+                            style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; height: calc(100% - 60px);">
+                            <div class="form-group" style="height: 100%;">
+                                <label>Workflow JSON (ComfyUI Format)</label>
+                                <textarea id="edit-wf-json"
+                                    style="font-family: monospace; font-size:0.8rem; height: 100%; white-space: pre; overflow-wrap: normal; overflow-x: scroll;"
+                                    spellcheck="false"></textarea>
+                            </div>
+                            <div class="form-group field-map-scroll"
+                                style="overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem; padding-right: 0.5rem;">
+                                <label>Node Field Map</label>
+                                <p class="desc" style="font-size:0.75rem; margin-top:-5px;">Map settings to Node IDs.
+                                </p>
+                                <div class="form-group"><label>Workflow API Name</label><input type="text"
+                                        id="edit-wf-name" placeholder="e.g. t2i_sdxl"></div>
+                                <div class="form-group"><label>Sampler Node ID</label><input type="text"
+                                        id="edit-wf-sampler"></div>
+                                <div class="form-group"><label>Positive Prompt Node ID</label><input type="text"
+                                        id="edit-wf-pos"></div>
+                                <div class="form-group"><label>Negative Prompt Node ID</label><input type="text"
+                                        id="edit-wf-neg"></div>
+                                <div class="form-group"><label>Model Loader Node ID</label><input type="text"
+                                        id="edit-wf-model"></div>
+                                <div class="form-group"><label>Model Field Name (e.g. ckpt_name)</label><input
+                                        type="text" id="edit-wf-model-field"></div>
+                                <div class="form-group"><label>Latent Size Node ID</label><input type="text"
+                                        id="edit-wf-latent"></div>
+                                <div class="form-group"><label>Save Image Node ID</label><input type="text"
+                                        id="edit-wf-save"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
 
         <!-- WORKSPACE VIEW -->
         <main id="view-workspace" class="view">

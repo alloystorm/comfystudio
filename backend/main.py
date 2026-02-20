@@ -1,7 +1,8 @@
 import json
 import asyncio
 from typing import List, Dict, Any
-from fastapi import FastAPI, BackgroundTasks
+from typing import List, Dict, Any
+from fastapi import FastAPI, BackgroundTasks, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
@@ -12,6 +13,7 @@ from models import Project, GenerationNode, GenerationParams, GenerateRequest, A
 import projects
 import comfyui
 import templates
+import workflows
 
 app = FastAPI(title="ComfyStudio API")
 
@@ -22,34 +24,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-WORKFLOWS_DIR = Path(__file__).parent.parent / "references" / "workflow"
-WORKFLOW_REGISTRY = {}
-
-def load_workflows():
-    try:
-        if (WORKFLOWS_DIR / "t2i_sdxl.json").exists():
-            with open(WORKFLOWS_DIR / "t2i_sdxl.json", "r") as f:
-                WORKFLOW_REGISTRY["t2i_sdxl"] = {"data": json.load(f), "map": {
-                    "sampler": "24", "positive_prompt": "6", "negative_prompt": "7", 
-                    "model": "4", "model_field": "ckpt_name", "latent": "5", "save": "27"
-                }}
-        if (WORKFLOWS_DIR / "t2i_ZIT.json").exists():
-            with open(WORKFLOWS_DIR / "t2i_ZIT.json", "r") as f:
-                WORKFLOW_REGISTRY["t2i_ZIT"] = {"data": json.load(f), "map": {
-                    "sampler": "3", "positive_prompt": "6", "negative_prompt": "7", 
-                    "model": "16", "model_field": "unet_name", "latent": "13", "save": "9"
-                }}
-        if (WORKFLOWS_DIR / "i2v_wan22.json").exists():
-            with open(WORKFLOWS_DIR / "i2v_wan22.json", "r") as f:
-                WORKFLOW_REGISTRY["i2v_wan22"] = {"data": json.load(f), "map": {
-                    "sampler": "85", "positive_prompt": "93", "negative_prompt": "89", 
-                    "model": "95", "model_field": "unet_name", "latent": "98", "save": "108"
-                }}
-    except Exception as e:
-        print("Error loading workflows:", e)
-
-load_workflows()
 
 @app.get("/api/health")
 async def health_check():
@@ -69,6 +43,18 @@ async def update_templates(params: TemplateList):
     templates.save_templates(params)
     return params
 
+@app.get("/api/workflows")
+async def list_workflows():
+    return workflows.get_workflows()
+
+@app.post("/api/workflows/{name}")
+async def update_workflow(name: str, req: Request):
+    from models import WorkflowConfig
+    body = await req.json()
+    config = WorkflowConfig.model_validate(body)
+    workflows.save_workflow(name, config)
+    return {"status": "ok"}
+
 @app.get("/api/projects", response_model=List[Project])
 async def list_projects():
     return projects.get_all_projects()
@@ -87,11 +73,13 @@ async def get_project(project_id: str):
 
 async def run_generation(project_id: str, node: GenerationNode):
     wf_name = node.params.workflow
-    if wf_name not in WORKFLOW_REGISTRY:
+    registry = workflows.get_workflows()
+    
+    if wf_name not in registry:
         print(f"Workflow {wf_name} not found in registry")
         return
         
-    wf_info = WORKFLOW_REGISTRY[wf_name]
+    wf_info = registry[wf_name]
     workflow = json.loads(json.dumps(wf_info["data"])) # deep copy
     m = wf_info["map"]
     
