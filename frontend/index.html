@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComfyStudio</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <h1>ComfyStudio</h1>
+            </div>
+            <div class="header-actions">
+                <button id="btn-dashboard" class="nav-btn active">Dashboard</button>
+            </div>
+        </header>
+
+        <!-- DASHBOARD VIEW -->
+        <main id="view-dashboard" class="view active">
+            <div class="dashboard-header">
+                <h2>Recent Projects</h2>
+                <button id="btn-new-project" class="primary-btn"><i class="fa-solid fa-plus"></i> New Project</button>
+            </div>
+            <div id="project-grid" class="project-grid">
+                <!-- Projects injected by JS -->
+            </div>
+        </main>
+
+        <!-- WORKSPACE VIEW -->
+        <main id="view-workspace" class="view">
+            <!-- Left Sidebar: Timeline -->
+            <aside class="sidebar-left">
+                <div class="sidebar-header">
+                    <h3>Timeline</h3>
+                </div>
+                <div id="timeline-container" class="timeline-container">
+                    <!-- Timeline nodes injected by JS -->
+                </div>
+            </aside>
+
+            <!-- Center Canvas -->
+            <section class="canvas">
+                <div id="image-viewer" class="image-viewer">
+                    <img id="active-image" src="" alt="Active Generation" style="display: none;">
+                    <div id="canvas-placeholder" class="placeholder">
+                        <i class="fa-regular fa-image"></i>
+                        <p>No image generated yet</p>
+                    </div>
+                    <div id="generation-loader" class="loader-overlay" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Generating...</p>
+                    </div>
+                </div>
+                <div class="canvas-actions">
+                    <button class="action-btn"><i class="fa-solid fa-wand-magic"></i> Edit</button>
+                    <button class="action-btn"><i class="fa-solid fa-film"></i> Animate</button>
+                    <button class="action-btn"><i class="fa-solid fa-code-branch"></i> Branch</button>
+                </div>
+            </section>
+
+            <!-- Right Sidebar: Settings -->
+            <aside class="sidebar-right">
+                <div class="sidebar-header">
+                    <h3>Generation Settings</h3>
+                </div>
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label>Prompt</label>
+                        <textarea id="input-prompt" rows="4" placeholder="Describe what you want to see..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Negative Prompt</label>
+                        <textarea id="input-negative" rows="3" placeholder="What to avoid..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Model</label>
+                            <select id="input-model">
+                                <option value="v1-5-pruned-emaonly.safetensors">SD 1.5 Base</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Seed</label>
+                            <div class="input-with-btn">
+                                <input type="number" id="input-seed" value="123456789">
+                                <button id="btn-random-seed" title="Randomize"><i class="fa-solid fa-dice"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Steps</label>
+                            <input type="number" id="input-steps" value="20" min="1" max="150">
+                        </div>
+                        <div class="form-group">
+                            <label>CFG</label>
+                            <input type="number" id="input-cfg" value="8.0" step="0.5">
+                        </div>
+                    </div>
+                    <button id="btn-generate" class="primary-btn generate-btn">
+                        <i class="fa-solid fa-bolt"></i> Generate
+                    </button>
+                </div>
+            </aside>
+        </main>
+    </div>
+    <script src="app.js" type="module"></script>
+</body>
+
+</html>
