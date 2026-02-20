@@ -4,14 +4,19 @@ from datetime import datetime
 import uuid
 
 class GenerationParams(BaseModel):
+    workflow: str = "t2i_sdxl"
     prompt: str
     negative_prompt: str = ""
-    model: str = "v1-5-pruned-emaonly.safetensors"
+    model: str = ""
     seed: int
     steps: int = 20
     cfg: float = 8.0
     width: int = 512
     height: int = 512
+
+class AvailableModels(BaseModel):
+    checkpoints: List[str] = []
+    unets: List[str] = []
 
 class GenerationNode(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

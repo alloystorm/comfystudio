@@ -72,6 +72,14 @@
                 </div>
                 <div class="settings-form">
                     <div class="form-group">
+                        <label>Workflow Template</label>
+                        <select id="input-workflow">
+                            <option value="t2i_sdxl">Text to Image (SDXL/Pony)</option>
+                            <option value="t2i_ZIT">Text to Image (Z Image Turbo)</option>
+                            <option value="i2v_wan22">Image to Video (Wan 2.2V)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>Prompt</label>
                         <textarea id="input-prompt" rows="4" placeholder="Describe what you want to see..."></textarea>
                     </div>
@@ -83,7 +91,7 @@
                         <div class="form-group">
                             <label>Model</label>
                             <select id="input-model">
-                                <option value="v1-5-pruned-emaonly.safetensors">SD 1.5 Base</option>
+                                <option value="">Loading models...</option>
                             </select>
                         </div>
                     </div>

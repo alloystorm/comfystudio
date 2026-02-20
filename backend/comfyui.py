@@ -64,3 +64,24 @@ def get_history(prompt_id: str) -> Dict[str, Any]:
     except Exception as e:
         print(f"Error getting history: {e}")
         return {}
+
+def get_available_models() -> Dict[str, list]:
+    """Fetches available checkpoints and unets from ComfyUI."""
+    req = urllib.request.Request(f"http://{COMFYUI_SERVER}/object_info")
+    try:
+        with urllib.request.urlopen(req) as response:
+            data = json.loads(response.read())
+            checkpoints = data.get('CheckpointLoaderSimple',{}).get('input',{}).get('required',{}).get('ckpt_name',[[]])[0]
+            unets = data.get('UNETLoader',{}).get('input',{}).get('required',{}).get('unet_name',[[]])[0]
+            # i2v_wan22 uses UnetLoaderGGUF but we could also add that if needed:
+            gguf_unets = data.get('UnetLoaderGGUF',{}).get('input',{}).get('required',{}).get('unet_name',[[]])[0]
+            
+            # Combine unets
+            all_unets = list(set(unets + gguf_unets))
+            return {
+                "checkpoints": checkpoints,
+                "unets": all_unets
+            }
+    except Exception as e:
+        print(f"Error fetching models: {e}")
+        return {"checkpoints": [], "unets": []}

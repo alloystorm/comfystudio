@@ -5,6 +5,7 @@ const API_URL = '/api';
 let currentProject = null;
 let currentTimeline = [];
 let activeNodeId = null;
+let availableModels = { checkpoints: [], unets: [] };
 
 // DOM Elements
 const viewDashboard = document.getElementById('view-dashboard');
@@ -15,6 +16,7 @@ const projectGrid = document.getElementById('project-grid');
 const timelineContainer = document.getElementById('timeline-container');
 
 // Settings Elements
+const elWorkflow = document.getElementById('input-workflow');
 const elPrompt = document.getElementById('input-prompt');
 const elNegative = document.getElementById('input-negative');
 const elModel = document.getElementById('input-model');
@@ -30,10 +32,46 @@ const canvasPlaceholder = document.getElementById('canvas-placeholder');
 const generationLoader = document.getElementById('generation-loader');
 
 // Initialization
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initEvents();
+    await fetchModels();
     loadDashboard();
 });
+
+async function fetchModels() {
+    try {
+        const res = await fetch(`${API_URL}/models`);
+        availableModels = await res.json();
+        updateModelDropdown();
+    } catch (e) {
+        console.error("Failed to fetch models", e);
+    }
+}
+
+function updateModelDropdown() {
+    elModel.innerHTML = '';
+    const wf = elWorkflow.value;
+    let options = [];
+
+    // t2i_sdxl uses checkpoints. ZIT and wan22 use unets.
+    if (wf === 't2i_sdxl') {
+        options = availableModels.checkpoints || [];
+    } else {
+        options = availableModels.unets || [];
+    }
+
+    if (options.length === 0) {
+        elModel.innerHTML = '<option value="">No models found</option>';
+        return;
+    }
+
+    options.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        elModel.appendChild(opt);
+    });
+}
 
 function initEvents() {
     btnDashboard.addEventListener('click', () => {
@@ -54,6 +92,10 @@ function initEvents() {
 
     btnGenerate.addEventListener('click', async () => {
         await generateImage();
+    });
+
+    elWorkflow.addEventListener('change', () => {
+        updateModelDropdown();
     });
 }
 
@@ -182,20 +224,43 @@ function selectNode(id) {
     if (!node) return;
 
     // Populate settings
+    if (node.params.workflow) elWorkflow.value = node.params.workflow;
+    updateModelDropdown();
     elPrompt.value = node.params.prompt;
     elNegative.value = node.params.negative_prompt;
-    elModel.value = node.params.model;
+    if (node.params.model) elModel.value = node.params.model;
     elSeed.value = node.params.seed;
     elSteps.value = node.params.steps;
     elCfg.value = node.params.cfg;
 
     // Show image
     if (node.image_filename) {
-        activeImage.src = `${API_URL}/projects/${currentProject.id}/images/${node.image_filename}`;
-        activeImage.style.display = 'block';
+        const isVideo = node.image_filename.endsWith('.mp4');
+        activeImage.style.display = 'none';
+
+        // Remove existing video element if any
+        const existingVideo = document.getElementById('active-video');
+        if (existingVideo) existingVideo.remove();
+
+        if (isVideo) {
+            const vid = document.createElement('video');
+            vid.id = 'active-video';
+            vid.src = `${API_URL}/projects/${currentProject.id}/images/${node.image_filename}`;
+            vid.autoplay = true;
+            vid.loop = true;
+            vid.controls = true;
+            vid.style.maxWidth = '100%';
+            vid.style.maxHeight = '100%';
+            document.getElementById('image-viewer').appendChild(vid);
+        } else {
+            activeImage.src = `${API_URL}/projects/${currentProject.id}/images/${node.image_filename}`;
+            activeImage.style.display = 'block';
+        }
         canvasPlaceholder.style.display = 'none';
     } else {
         activeImage.style.display = 'none';
+        const existingVideo = document.getElementById('active-video');
+        if (existingVideo) existingVideo.remove();
         canvasPlaceholder.style.display = 'block';
     }
 
@@ -206,14 +271,15 @@ async function generateImage() {
     if (!currentProject) return;
 
     const params = {
+        workflow: elWorkflow.value,
         prompt: elPrompt.value,
         negative_prompt: elNegative.value,
         model: elModel.value,
         seed: parseInt(elSeed.value),
         steps: parseInt(elSteps.value),
         cfg: parseFloat(elCfg.value),
-        width: 512,
-        height: 512
+        width: 1024,
+        height: 1024
     };
 
     generationLoader.style.display = 'flex';
