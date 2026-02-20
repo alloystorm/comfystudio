@@ -23,6 +23,10 @@ const elModel = document.getElementById('input-model');
 const elSeed = document.getElementById('input-seed');
 const elSteps = document.getElementById('input-steps');
 const elCfg = document.getElementById('input-cfg');
+const elWidth = document.getElementById('input-width');
+const elAspectRatio = document.getElementById('input-aspect-ratio');
+const elOrientation = document.getElementById('input-orientation');
+const elDimensions = document.getElementById('text-dimensions');
 const btnRandomSeed = document.getElementById('btn-random-seed');
 const btnGenerate = document.getElementById('btn-generate');
 
@@ -97,6 +101,35 @@ function initEvents() {
     elWorkflow.addEventListener('change', () => {
         updateModelDropdown();
     });
+
+    elWidth.addEventListener('input', updateDimensions);
+    elAspectRatio.addEventListener('change', updateDimensions);
+    elOrientation.addEventListener('change', updateDimensions);
+}
+
+function getCalculatedHeight() {
+    let width = parseInt(elWidth.value) || 1024;
+    const ar = elAspectRatio.value;
+    const isPortrait = elOrientation.value === 'Portrait';
+
+    let [wRatio, hRatio] = ar.split(':').map(Number);
+    if (wRatio !== hRatio && isPortrait) {
+        const temp = wRatio;
+        wRatio = hRatio;
+        hRatio = temp;
+    }
+
+    let height = Math.round(width * (hRatio / wRatio));
+    // Round to nearest 8
+    return Math.round(height / 8) * 8;
+}
+
+function updateDimensions() {
+    const w = parseInt(elWidth.value) || 1024;
+    const h = getCalculatedHeight();
+    if (elDimensions) {
+        elDimensions.textContent = `Final Size: ${w} × ${h}`;
+    }
 }
 
 function showView(viewName) {
@@ -232,6 +265,10 @@ function selectNode(id) {
     elSeed.value = node.params.seed;
     elSteps.value = node.params.steps;
     elCfg.value = node.params.cfg;
+    if (node.params.width) elWidth.value = node.params.width;
+    if (node.params.aspect_ratio) elAspectRatio.value = node.params.aspect_ratio;
+    if (node.params.orientation) elOrientation.value = node.params.orientation;
+    updateDimensions();
 
     // Show image
     if (node.image_filename) {
@@ -278,8 +315,10 @@ async function generateImage() {
         seed: parseInt(elSeed.value),
         steps: parseInt(elSteps.value),
         cfg: parseFloat(elCfg.value),
-        width: 1024,
-        height: 1024
+        width: parseInt(elWidth.value) || 1024,
+        height: getCalculatedHeight(),
+        aspect_ratio: elAspectRatio.value,
+        orientation: elOrientation.value
     };
 
     generationLoader.style.display = 'flex';

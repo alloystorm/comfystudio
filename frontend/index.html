@@ -114,6 +114,34 @@
                             <input type="number" id="input-cfg" value="8.0" step="0.5">
                         </div>
                     </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Width</label>
+                            <input type="number" id="input-width" value="1024" step="8">
+                        </div>
+                        <div class="form-group">
+                            <label>Ratio</label>
+                            <select id="input-aspect-ratio">
+                                <option value="1:1">1:1</option>
+                                <option value="4:3">4:3</option>
+                                <option value="3:2">3:2</option>
+                                <option value="16:9">16:9</option>
+                                <option value="21:9">21:9</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Orientation</label>
+                            <select id="input-orientation">
+                                <option value="Landscape">Landscape</option>
+                                <option value="Portrait">Portrait</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <small id="text-dimensions"
+                            style="color: var(--text-muted); text-align: right; margin-top: -10px;">Final Size: 1024 ×
+                            1024</small>
+                    </div>
                     <button id="btn-generate" class="primary-btn generate-btn">
                         <i class="fa-solid fa-bolt"></i> Generate
                     </button>

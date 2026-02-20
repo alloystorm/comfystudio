@@ -11,8 +11,10 @@ class GenerationParams(BaseModel):
     seed: int
     steps: int = 20
     cfg: float = 8.0
-    width: int = 512
-    height: int = 512
+    width: int = 1024
+    height: int = 1024
+    aspect_ratio: str = "1:1"
+    orientation: str = "Landscape"
 
 class AvailableModels(BaseModel):
     checkpoints: List[str] = []
