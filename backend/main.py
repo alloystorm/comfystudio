@@ -151,17 +151,22 @@ async def run_generation(project_id: str, node: GenerationNode):
         node.progress = val / m if m > 0 else 0
         projects.add_node_to_project(project_id, node)
 
-    # Wait for completion
-    success = await comfyui.listen_for_progress(prompt_id, callback=progress_callback, timeout=600)
-    
-    if not success:
-        node.status = "error"
-        node.error = "Generation timed out or connection lost."
-        projects.add_node_to_project(project_id, node)
-        return
+    # Check if already completed (cached) before waiting on websocket
+    history = comfyui.get_history(prompt_id)
+    if prompt_id not in history:
+        # Wait for completion
+        success = await comfyui.listen_for_progress(prompt_id, callback=progress_callback, timeout=600)
+        
+        if not success:
+            node.status = "error"
+            node.error = "Generation timed out or connection lost."
+            projects.add_node_to_project(project_id, node)
+            return
+        
+        # Re-fetch history after completion
+        history = comfyui.get_history(prompt_id)
     
     # Get history and save image
-    history = comfyui.get_history(prompt_id)
     if prompt_id in history:
         save_node_id = m.get("save")
         outputs = history[prompt_id].get("outputs", {})
