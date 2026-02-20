@@ -40,6 +40,12 @@ const editWfLoraField = document.getElementById('edit-wf-lora-field');
 const editWfLatent = document.getElementById('edit-wf-latent');
 const editWfSave = document.getElementById('edit-wf-save');
 
+// Viewer Nav Elements
+const imageNavControls = document.getElementById('image-nav-controls');
+const btnNavPrev = document.getElementById('btn-nav-prev');
+const btnNavNext = document.getElementById('btn-nav-next');
+const labelNavCounter = document.getElementById('label-nav-counter');
+
 // Settings Elements
 const elWorkflow = document.getElementById('input-workflow');
 const elPrompt = document.getElementById('input-prompt');
@@ -797,13 +803,17 @@ function selectNode(id) {
             errorMsg.textContent = node.error || "Generation failed";
         }
         canvasPlaceholder.style.display = 'none';
+        imageNavControls.style.display = 'none';
     } else if (node.status === 'generating') {
-        generationLoader.style.display = 'flex';
+        if (!slideshowActive) {
+            generationLoader.style.display = 'flex';
+        }
         if (progressText) {
             const pct = Math.round((node.progress || 0) * 100);
             progressText.textContent = `Generating... ${pct}%`;
         }
         canvasPlaceholder.style.display = 'none';
+        imageNavControls.style.display = 'none';
     }
 
     // Show image
@@ -848,6 +858,46 @@ function selectNode(id) {
             activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }, 50);
+
+    // Render Canvas-Level Overlay Nav
+    const groups = [];
+    currentTimeline.forEach(n => {
+        if (groups.length === 0) {
+            groups.push([n]);
+        } else {
+            const lastGroup = groups[groups.length - 1];
+            const lastNode = lastGroup[lastGroup.length - 1];
+            if (n.params.prompt === lastNode.params.prompt) {
+                lastGroup.push(n);
+            } else {
+                groups.push([n]);
+            }
+        }
+    });
+
+    let currentGroup = null;
+    let nodeIndex = -1;
+    for (const g of groups) {
+        const idx = g.findIndex(n => n.id === activeNodeId);
+        if (idx !== -1) {
+            currentGroup = g;
+            nodeIndex = idx;
+            break;
+        }
+    }
+
+    if (currentGroup && currentGroup.length > 1) {
+        imageNavControls.style.display = 'flex';
+        labelNavCounter.textContent = `${nodeIndex + 1} / ${currentGroup.length}`;
+
+        btnNavPrev.disabled = nodeIndex === 0;
+        btnNavPrev.onclick = () => selectNode(currentGroup[nodeIndex - 1].id);
+
+        btnNavNext.disabled = nodeIndex === currentGroup.length - 1;
+        btnNavNext.onclick = () => selectNode(currentGroup[nodeIndex + 1].id);
+    } else {
+        imageNavControls.style.display = 'none';
+    }
 }
 
 async function generateImage() {
