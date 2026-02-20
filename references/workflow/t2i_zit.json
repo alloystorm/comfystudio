@@ -1,1 +1,185 @@
-{"id":"92112d97-bb64-4b44-86f2-ea5691ef8f6e","revision":0,"last_node_id":36,"last_link_id":76,"nodes":[{"id":11,"type":"ModelSamplingAuraFlow","pos":[390,60],"size":[315,58],"flags":{},"order":7,"mode":4,"inputs":[{"localized_name":"model","name":"model","type":"MODEL","link":42},{"localized_name":"shift","name":"shift","type":"FLOAT","widget":{"name":"shift"},"link":null}],"outputs":[{"localized_name":"MODEL","name":"MODEL","type":"MODEL","slot_index":0,"links":[]}],"properties":{"cnr_id":"comfy-core","ver":"0.3.75","Node name for S&R":"ModelSamplingAuraFlow"},"widgets_values":[3]},{"id":18,"type":"CLIPLoader","pos":[-459.1011443894328,428.1390693916214],"size":[270,106],"flags":{},"order":0,"mode":0,"inputs":[{"localized_name":"clip_name","name":"clip_name","type":"COMBO","widget":{"name":"clip_name"},"link":null},{"localized_name":"type","name":"type","type":"COMBO","widget":{"name":"type"},"link":null},{"localized_name":"device","name":"device","shape":7,"type":"COMBO","widget":{"name":"device"},"link":null}],"outputs":[{"localized_name":"CLIP","name":"CLIP","type":"CLIP","links":[57]}],"properties":{"cnr_id":"comfy-core","ver":"0.3.75","Node name for S&R":"CLIPLoader"},"widgets_values":["qwen_3_4b.safetensors","lumina2","default"]},{"id":17,"type":"VAELoader","pos":[-415.7081942419289,661.774820508085],"size":[270,58],"flags":{},"order":1,"mode":0,"inputs":[{"localized_name":"vae_name","name":"vae_name","type":"COMBO","widget":{"name":"vae_name"},"link":null}],"outputs":[{"localized_name":"VAE","name":"VAE","type":"VAE","links":[45,74]}],"properties":{"cnr_id":"comfy-core","ver":"0.3.75","Node name for S&R":"VAELoader"},"widgets_values":["ae.safetensors"]},{"id":7,"type":"CLIPTextEncode","pos":[-270.5585770106217,168.48594457416405],"size":[425.27801513671875,180.6060791015625],"flags":{},"order":11,"mode":0,"inputs":[{"localized_name":"clip","name":"clip","type":"CLIP","link":59},{"localized_name":"text","name":"text","type":"STRING","widget":{"name":"text"},"link":null}],"outputs":[{"localized_name":"CONDITIONING","name":"CONDITIONING","type":"CONDITIONING","slot_index":0,"links":[]}],"title":"CLIP Text Encode (Negative Prompt)","properties":{"cnr_id":"comfy-core","ver":"0.3.75","Node name for S&R":"CLIPTextEncode"},"widgets_values":["blurry ugly bad"],"color":"#322","bgcolor":"#533"},{"id":13,"type":"EmptySD3LatentImage","pos":[-466.56701884112766,815.366598528407],"size":[315,106],"flags":{},"order":2,"mode":0,"inputs":[{"localized_name":"width","name":"width","type":"INT","widget":{"name":"width"},"link":null},{"localized_name":"height","name":"height","type":"INT","widget":{"name":"height"},"link":null},{"localized_name":"batch_size","name":"batch_size","type":"INT","widget":{"name":"batch_size"},"link":null}],"outputs":[{"localized_name":"LATENT","name":"LATENT","type":"LATENT","slot_index":0,"links":[76]}],"properties":{"cnr_id":"comfy-core","ver":"0.3.75","Node name for S&R":"EmptySD3LatentImage"},"widgets_values":[1024,1440,1]},{"id":34,"type":"LoadImage","pos":[-1230.60686055487,982.357792298003],"size":[282.798828125,314.0000000000001],"flags":{},"order":3,"mode":0,"inputs":[{"localized_name":"image","name":"image","type":"COMBO","widget":{"name":"image"},"link":null},{"localized_name":"choose file to upload","name":"upload","type":"IMAGEUPLOAD","widget":{"name":"upload"},"link":null}],"outputs":[{"localized_name":"IMAGE","name":"IMAGE","type":"IMAGE","links":[72]},{"localized_name":"MASK","name":"MASK","type":"MASK","links":null}],"properties":{"cnr_id":"comfy-core","ver":"0.12.3","Node name for S&R":"LoadImage"},"widgets_values":["000013.jpg","image"]},{"id":35,"type":"ResizeImagesByLongerEdge","pos":[-900.4724810089526,879.7907745055437],"size":[303.6109375,58],"flags":{},"order":6,"mode":0,"inputs":[{"localized_name":"images","name":"images","type":"IMAGE","link":72},{"localized_name":"longer_edge","name":"longer_edge","type":"INT","widget":{"name":"longer_edge"},"link":null}],"outputs":[{"localized_name":"images","name":"images","type":"IMAGE","links":[73]}],"properties":{"cnr_id":"comfy-core","ver":"0.12.3","Node name for S&R":"ResizeImagesByLongerEdge"},"widgets_values":[1024]},{"id":36,"type":"VAEEncode","pos":[-530.2546160306816,1040.9065536958954],"size":[140,46],"flags":{},"order":9,"mode":0,"inputs":[{"localized_name":"pixels","name":"pixels","type":"IMAGE","link":73},{"localized_name":"vae","name":"vae","type":"VAE","link":74}],"outputs":[{"localized_name":"LATENT","name":"LATENT","type":"LATENT","links":[]}],"properties":{"cnr_id":"comfy-core","ver":"0.12.3","Node name for S&R":"VAEEncode"},"widgets_values":[]},{"id":8,"type":"VAEDecode","pos":[-87.05435770856882,450.17666344702445],"size":[210,46],"flags":{},"order":13,"mode":0,"inputs":[{"localized_name":"samples","name":"samples","type":"LATENT","link":51},{"localized_name":"vae","name":"vae","type":"VAE","link":45}],"outputs":[{"localized_name":"IMAGE","name":"IMAGE","type":"IMAGE","slot_index":0,"links":[16]}],"properties":{"cnr_id":"comfy-core","ver":"0.3.75","Node name for S&R":"VAEDecode"},"widgets_values":[]},{"id":9,"type":"SaveImage","pos":[178.66648423408165,458.5784275047684],"size":[647.3043464060834,888.0834308225469],"flags":{},"order":14,"mode":0,"inputs":[{"localized_name":"images","name":"images","type":"IMAGE","link":16},{"localized_name":"filename_prefix","name":"filename_prefix","type":"STRING","widget":{"name":"filename_prefix"},"link":null}],"outputs":[],"properties":{"cnr_id":"comfy-core","ver":"0.3.75"},"widgets_values":["ComfyUI"]},{"id":16,"type":"UNETLoader","pos":[-416.7524357022864,-1.154200392989471],"size":[270,82],"flags":{},"order":4,"mode":0,"inputs":[{"localized_name":"unet_name","name":"unet_name","type":"COMBO","widget":{"name":"unet_name"},"link":null},{"localized_name":"weight_dtype","name":"weight_dtype","type":"COMBO","widget":{"name":"weight_dtype"},"link":null}],"outputs":[{"localized_name":"MODEL","name":"MODEL","type":"MODEL","links":[42,55]}],"properties":{"cnr_id":"comfy-core","ver":"0.3.75","Node name for S&R":"UNETLoader"},"widgets_values":["z_image_turbo_bf16.safetensors","default"]},{"id":15,"type":"Note","pos":[-827.2498541623216,144.0829627753],"size":[319.26513671875,197.89625549316406],"flags":{},"order":5,"mode":0,"inputs":[],"outputs":[],"properties":{},"widgets_values":["The \"You are an assistant... <Prompt Start> \" text before the actual prompt is the one used in the official example.\n\nThe reason it is exposed to the user like this is because the model still works if you modify or remove it."],"color":"#432","bgcolor":"#653"},{"id":28,"type":"LoraLoader","pos":[-33.510868749185335,-86.87265692724336],"size":[270,126],"flags":{},"order":8,"mode":0,"inputs":[{"localized_name":"model","name":"model","type":"MODEL","link":55},{"localized_name":"clip","name":"clip","type":"CLIP","link":57},{"localized_name":"lora_name","name":"lora_name","type":"COMBO","widget":{"name":"lora_name"},"link":null},{"localized_name":"strength_model","name":"strength_model","type":"FLOAT","widget":{"name":"strength_model"},"link":null},{"localized_name":"strength_clip","name":"strength_clip","type":"FLOAT","widget":{"name":"strength_clip"},"link":null}],"outputs":[{"localized_name":"MODEL","name":"MODEL","type":"MODEL","links":[56]},{"localized_name":"CLIP","name":"CLIP","type":"CLIP","links":[58,59]}],"properties":{"cnr_id":"comfy-core","ver":"0.9.2","Node name for S&R":"LoraLoader"},"widgets_values":["Illustration_E16.safetensors",1,1]},{"id":3,"type":"KSampler","pos":[863,186],"size":[315,262],"flags":{},"order":12,"mode":0,"inputs":[{"localized_name":"model","name":"model","type":"MODEL","link":56},{"localized_name":"positive","name":"positive","type":"CONDITIONING","link":4},{"localized_name":"negative","name":"negative","type":"CONDITIONING","link":54},{"localized_name":"latent_image","name":"latent_image","type":"LATENT","link":76},{"localized_name":"seed","name":"seed","type":"INT","widget":{"name":"seed"},"link":null},{"localized_name":"steps","name":"steps","type":"INT","widget":{"name":"steps"},"link":null},{"localized_name":"cfg","name":"cfg","type":"FLOAT","widget":{"name":"cfg"},"link":null},{"localized_name":"sampler_name","name":"sampler_name","type":"COMBO","widget":{"name":"sampler_name"},"link":null},{"localized_name":"scheduler","name":"scheduler","type":"COMBO","widget":{"name":"scheduler"},"link":null},{"localized_name":"denoise","name":"denoise","type":"FLOAT","widget":{"name":"denoise"},"link":null}],"outputs":[{"localized_name":"LATENT","name":"LATENT","type":"LATENT","slot_index":0,"links":[51]}],"properties":{"cnr_id":"comfy-core","ver":"0.3.75","Node name for S&R":"KSampler"},"widgets_values":[931,"fixed",9,1,"euler","simple",1]},{"id":6,"type":"CLIPTextEncode","pos":[275.0769432452599,190.40179451548852],"size":[423.83001708984375,177.11770629882812],"flags":{},"order":10,"mode":0,"inputs":[{"localized_name":"clip","name":"clip","type":"CLIP","link":58},{"localized_name":"text","name":"text","type":"STRING","widget":{"name":"text"},"link":null}],"outputs":[{"localized_name":"CONDITIONING","name":"CONDITIONING","type":"CONDITIONING","slot_index":0,"links":[4,54]}],"title":"CLIP Text Encode (Positive Prompt)","properties":{"cnr_id":"comfy-core","ver":"0.3.75","Node name for S&R":"CLIPTextEncode"},"widgets_values":["coniltralution art style: acrylic painting beautiful girl in a photoshot session, traditional chinese outfit, revealing, sexy, boobs exposed."],"color":"#232","bgcolor":"#353"}],"links":[[4,6,0,3,1,"CONDITIONING"],[16,8,0,9,0,"IMAGE"],[42,16,0,11,0,"MODEL"],[45,17,0,8,1,"VAE"],[51,3,0,8,0,"LATENT"],[54,6,0,3,2,"CONDITIONING"],[55,16,0,28,0,"MODEL"],[56,28,0,3,0,"MODEL"],[57,18,0,28,1,"CLIP"],[58,28,1,6,0,"CLIP"],[59,28,1,7,0,"CLIP"],[72,34,0,35,0,"IMAGE"],[73,35,0,36,0,"IMAGE"],[74,17,0,36,1,"VAE"],[76,13,0,3,3,"LATENT"]],"groups":[],"config":{},"extra":{"ds":{"scale":1.4007091773016132,"offset":[437.4248288932043,7.0624895206167455]},"frontendVersion":"1.32.9","workflowRendererVersion":"LG","VHS_latentpreview":false,"VHS_latentpreviewrate":0,"VHS_MetadataImage":true,"VHS_KeepIntermediate":true},"version":0.4}
+{
+  "3": {
+    "inputs": {
+      "seed": 931,
+      "steps": 9,
+      "cfg": 1,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1,
+      "model": [
+        "28",
+        0
+      ],
+      "positive": [
+        "6",
+        0
+      ],
+      "negative": [
+        "6",
+        0
+      ],
+      "latent_image": [
+        "13",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "6": {
+    "inputs": {
+      "text": "coniltralution art style: acrylic painting beautiful girl in a photoshot session, traditional chinese outfit, revealing, sexy, boobs exposed.",
+      "clip": [
+        "28",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+  "7": {
+    "inputs": {
+      "text": "blurry ugly bad",
+      "clip": [
+        "28",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+  "8": {
+    "inputs": {
+      "samples": [
+        "3",
+        0
+      ],
+      "vae": [
+        "17",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "9": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  },
+  "13": {
+    "inputs": {
+      "width": 1024,
+      "height": 1440,
+      "batch_size": 1
+    },
+    "class_type": "EmptySD3LatentImage",
+    "_meta": {
+      "title": "EmptySD3LatentImage"
+    }
+  },
+  "16": {
+    "inputs": {
+      "unet_name": "z_image_turbo_bf16.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    }
+  },
+  "17": {
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    }
+  },
+  "18": {
+    "inputs": {
+      "clip_name": "qwen_3_4b.safetensors",
+      "type": "lumina2",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Load CLIP"
+    }
+  },
+  "28": {
+    "inputs": {
+      "lora_name": "Illustration_E16.safetensors",
+      "strength_model": 1,
+      "strength_clip": 1,
+      "model": [
+        "16",
+        0
+      ],
+      "clip": [
+        "18",
+        0
+      ]
+    },
+    "class_type": "LoraLoader",
+    "_meta": {
+      "title": "Load LoRA (Model and CLIP)"
+    }
+  },
+  "34": {
+    "inputs": {
+      "image": "000013.jpg"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "35": {
+    "inputs": {
+      "longer_edge": 1024,
+      "images": [
+        "34",
+        0
+      ]
+    },
+    "class_type": "ResizeImagesByLongerEdge",
+    "_meta": {
+      "title": "Resize Images by Longer Edge"
+    }
+  },
+  "36": {
+    "inputs": {
+      "pixels": [
+        "35",
+        0
+      ],
+      "vae": [
+        "17",
+        0
+      ]
+    },
+    "class_type": "VAEEncode",
+    "_meta": {
+      "title": "VAE Encode"
+    }
+  }
+}
