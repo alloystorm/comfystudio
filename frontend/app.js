@@ -15,11 +15,12 @@ const btnSettings = document.getElementById('btn-settings');
 const btnNewProject = document.getElementById('btn-new-project');
 const timelineContainer = document.getElementById('timeline-container');
 
-// Dropdown & Modal Elements
-const projectSelector = document.getElementById('project-selector');
-const btnProjectDropdown = document.getElementById('btn-project-dropdown');
-const projectList = document.getElementById('project-list');
+const viewDashboard = document.getElementById('view-dashboard');
+
+// Header Elements
+const btnDashboard = document.getElementById('btn-dashboard');
 const labelCurrentProject = document.getElementById('label-current-project');
+const projectGrid = document.getElementById('project-grid');
 const modalSettings = document.getElementById('modal-settings');
 const btnCloseSettings = document.getElementById('btn-close-settings');
 const btnSaveTemplates = document.getElementById('btn-save-templates');
@@ -169,15 +170,9 @@ function updateModelDropdown() {
 }
 
 function initEvents() {
-    btnProjectDropdown.addEventListener('click', (e) => {
-        e.stopPropagation();
-        projectSelector.classList.toggle('active');
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!projectSelector.contains(e.target)) {
-            projectSelector.classList.remove('active');
-        }
+    btnDashboard.addEventListener('click', () => {
+        showView('dashboard');
+        loadDashboard();
     });
 
     btnSettings.addEventListener('click', () => {
@@ -461,7 +456,15 @@ function updateDimensions() {
 }
 
 function showView(viewName) {
-    viewWorkspace.classList.add('active');
+    viewDashboard.classList.remove('active');
+    viewWorkspace.classList.remove('active');
+
+    if (viewName === 'dashboard') {
+        viewDashboard.classList.add('active');
+        loadDashboard();
+    } else {
+        viewWorkspace.classList.add('active');
+    }
 }
 
 async function loadDashboard() {
@@ -469,10 +472,10 @@ async function loadDashboard() {
         const res = await fetch(`${API_URL}/projects`);
         const projects = await res.json();
 
-        projectList.innerHTML = '';
+        projectGrid.innerHTML = '';
         projects.forEach(p => {
-            const el = document.createElement('a');
-            el.className = 'dropdown-item';
+            const el = document.createElement('div');
+            el.className = 'project-card';
 
             // Get latest image if exists
             let thumbUrl = '';
@@ -489,21 +492,18 @@ async function loadDashboard() {
             const thumbIcon = thumbUrl ? '' : '<i class="fa-regular fa-image"></i>';
 
             el.innerHTML = `
-                <div style="display:flex; align-items:center; gap:0.5rem;">
-                    <div style="width:30px; height:30px; ${thumbStyle} background-size:cover; border-radius:4px;">${thumbIcon}</div>
-                    <div>
-                        <h4>${p.name}</h4>
-                        <p>${nodeIds.length} gens</p>
-                    </div>
+                <div class="project-thumb" style="${thumbStyle}">${thumbIcon}</div>
+                <div class="project-info">
+                    <h3>${p.name}</h3>
+                    <p>${nodeIds.length} generations</p>
                 </div>
             `;
 
             el.addEventListener('click', (e) => {
                 e.preventDefault();
                 openProject(p.id);
-                projectSelector.classList.remove('active');
             });
-            projectList.appendChild(el);
+            projectGrid.appendChild(el);
         });
     } catch (e) {
         console.error("Error loading dashboard", e);

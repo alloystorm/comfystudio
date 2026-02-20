@@ -213,7 +213,7 @@ header {
 
 /* Workspace */
 #view-workspace {
-    display: flex;
+    display: none;
 }
 
 aside {
@@ -530,7 +530,9 @@ textarea {
     color: var(--accent);
     border-color: var(--accent);
     background: rgba(124, 58, 237, 0.1);
-}/* MODAL STYLES */
+}
+
+/* MODAL STYLES */
 .modal-overlay {
     position: fixed;
     inset: 0;
