@@ -103,13 +103,35 @@ async def run_generation(project_id: str, node: GenerationNode):
         workflow[m["model"]]["inputs"][m["model_field"]] = node.params.model
         
     if m.get("lora") in workflow:
-        if node.params.bypass_lora:
-            workflow[m["lora"]]["inputs"]["strength_model"] = 0
-            workflow[m["lora"]]["inputs"]["strength_clip"] = 0
-        else:
-            if node.params.lora:
-                workflow[m["lora"]]["inputs"][m["lora_field"]] = node.params.lora
-            # If not bypassed, keep its default strengths
+        lora_node_id = m["lora"]
+        lora_node = workflow.get(lora_node_id)
+        
+        if lora_node:
+            if node.params.bypass_lora or not node.params.lora:
+                # Bypass: Find upstream model and clip connected to this LoraLoader
+                upstream_model = lora_node["inputs"].get("model")
+                upstream_clip = lora_node["inputs"].get("clip")
+                
+                # Re-route all downstream nodes that point to this LoraLoader
+                for n_id, n_data in workflow.items():
+                    if n_id == lora_node_id: continue
+                    inputs = n_data.get("inputs", {})
+                    for k, v in inputs.items():
+                        if isinstance(v, list) and len(v) == 2 and v[0] == lora_node_id:
+                            # Re-route based on the expected output type (0 for model, 1 for clip)
+                            output_idx = v[1]
+                            if output_idx == 0 and upstream_model:
+                                inputs[k] = upstream_model
+                            elif output_idx == 1 and upstream_clip:
+                                inputs[k] = upstream_clip
+                                
+                # Remove the LoraLoader node from the workflow
+                del workflow[lora_node_id]
+            else:
+                # Enable LoRA
+                if "lora_field" in m:
+                    lora_node["inputs"][m["lora_field"]] = node.params.lora
+                # Ensure it remains connected as defined in the template
             
     if m.get("latent") in workflow:
         workflow[m["latent"]]["inputs"]["width"] = node.params.width
