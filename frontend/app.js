@@ -29,6 +29,7 @@ const elOrientation = document.getElementById('input-orientation');
 const elDimensions = document.getElementById('text-dimensions');
 const btnRandomSeed = document.getElementById('btn-random-seed');
 const btnGenerate = document.getElementById('btn-generate');
+const btnIterate = document.getElementById('btn-iterate');
 
 // Canvas Elements
 const activeImage = document.getElementById('active-image');
@@ -100,6 +101,22 @@ function initEvents() {
 
     elWorkflow.addEventListener('change', () => {
         updateModelDropdown();
+    });
+
+    btnIterate.addEventListener('click', async () => {
+        const currentSeed = parseInt(elSeed.value) || 0;
+        elSeed.value = currentSeed + 1;
+        await generateImage();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            btnGenerate.click();
+        } else if (e.shiftKey && e.key === 'Enter') {
+            e.preventDefault();
+            btnIterate.click();
+        }
     });
 
     elWidth.addEventListener('input', updateDimensions);
