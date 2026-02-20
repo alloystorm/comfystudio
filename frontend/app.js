@@ -225,9 +225,10 @@ function initEvents() {
     btnSaveWorkflow.addEventListener('click', async () => await saveWorkflowSettings());
 
     btnNewProject.addEventListener('click', async () => {
-        const name = prompt("Enter project name:");
-        if (name) {
-            await createProject(name);
+        const promptText = prompt("Enter initial prompt (this will be the project name):");
+        if (promptText) {
+            await createProject(promptText);
+            elPrompt.value = promptText;
         }
     });
 
@@ -261,23 +262,28 @@ function initEvents() {
 
     btnBranch.addEventListener('click', async () => {
         if (!activeNodeId || !currentProject) return alert("Select an image to branch from first.");
-        const name = prompt("Enter new project name:", `${currentProject.name} (Branched)`);
-        if (name) {
-            // Keep params but clear image and parent ID
-            const activeNode = currentProject.nodes[activeNodeId];
-            if (!activeNode) return;
 
+        const activeNode = currentProject.nodes[activeNodeId];
+        if (!activeNode) return;
+
+        const defaultPrompt = activeNode.params.prompt_template || activeNode.params.prompt || "";
+        const promptText = prompt("Enter initial prompt for the branched project:", defaultPrompt);
+
+        if (promptText) {
             try {
                 // Create project
                 const res = await fetch(`${API_URL}/projects`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name })
+                    body: JSON.stringify({ name: promptText })
                 });
                 const newProj = await res.json();
 
                 // Switch context to newly created project
                 await openProject(newProj.id);
+
+                // Set the prompt to the string provided by the user
+                elPrompt.value = promptText;
 
                 // Immediately generate the first image using copied parameters
                 await generateImage();
