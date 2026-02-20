@@ -211,10 +211,7 @@ header {
     color: var(--text-secondary);
 }
 
-/* Workspace */
-#view-workspace {
-    display: none;
-}
+/* Workspace Layout handled by .view and .view.active */
 
 aside {
     background: var(--bg-surface);
