@@ -52,6 +52,9 @@ class GenerationNode(BaseModel):
     params: GenerationParams
     image_filename: Optional[str] = None
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
+    status: str = "completed"  # generating, completed, error
+    progress: float = 1.0
+    error: Optional[str] = None
 
 class Project(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))

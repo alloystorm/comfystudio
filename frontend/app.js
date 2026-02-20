@@ -557,12 +557,21 @@ function renderTimeline() {
         el.className = `timeline-node ${node.id === activeNodeId ? 'active' : ''}`;
 
         let thumbUrl = '';
-        if (node.image_filename) {
+        if (node.image_filename && node.status === 'completed') {
             thumbUrl = `${API_URL}/projects/${currentProject.id}/images/${node.image_filename}`;
         }
 
         const thumbStyle = thumbUrl ? `background-image: url('${thumbUrl}')` : '';
-        const thumbIcon = thumbUrl ? '' : '<i class="fa-solid fa-hourglass-half"></i>';
+        let thumbIcon = '';
+        if (!thumbUrl) {
+            if (node.status === 'error') {
+                thumbIcon = '<i class="fa-solid fa-triangle-exclamation" style="color: var(--danger);"></i>';
+            } else if (node.status === 'generating') {
+                thumbIcon = '<div class="spinner" style="width: 20px; height: 20px; border-width: 2px;"></div>';
+            } else {
+                thumbIcon = '<i class="fa-solid fa-hourglass-half"></i>';
+            }
+        }
 
         el.innerHTML = `
             <div class="node-thumb" style="${thumbStyle}">${thumbIcon}</div>
@@ -611,8 +620,31 @@ function selectNode(id) {
 
     updateDimensions();
 
+    // Handle Generation Overlays
+    const errorOverlay = document.getElementById('generation-error');
+    const errorMsg = document.getElementById('error-message');
+    const progressText = document.getElementById('generation-progress-text');
+
+    generationLoader.style.display = 'none';
+    if (errorOverlay) errorOverlay.style.display = 'none';
+
+    if (node.status === 'error') {
+        if (errorOverlay) {
+            errorOverlay.style.display = 'flex';
+            errorMsg.textContent = node.error || "Generation failed";
+        }
+        canvasPlaceholder.style.display = 'none';
+    } else if (node.status === 'generating') {
+        generationLoader.style.display = 'flex';
+        if (progressText) {
+            const pct = Math.round((node.progress || 0) * 100);
+            progressText.textContent = `Generating... ${pct}%`;
+        }
+        canvasPlaceholder.style.display = 'none';
+    }
+
     // Show image
-    if (node.image_filename) {
+    if (node.image_filename && node.status === 'completed') {
         const isVideo = node.image_filename.endsWith('.mp4');
         activeImage.style.display = 'none';
 
@@ -639,7 +671,9 @@ function selectNode(id) {
         activeImage.style.display = 'none';
         const existingVideo = document.getElementById('active-video');
         if (existingVideo) existingVideo.remove();
-        canvasPlaceholder.style.display = 'block';
+        if (node.status !== 'generating' && node.status !== 'error') {
+            canvasPlaceholder.style.display = 'block';
+        }
     }
 
     renderTimeline();
@@ -749,13 +783,25 @@ function pollForCompletion(nodeId) {
             const p = await res.json();
             const node = p.nodes[nodeId];
 
-            if (node && node.image_filename) {
+            if (node.status === 'completed' && node.image_filename) {
                 clearInterval(interval);
                 currentProject = p;
                 currentTimeline = Object.values(currentProject.nodes).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
                 if (activeNodeId === nodeId) {
                     selectNode(nodeId);
-                    generationLoader.style.display = 'none';
+                }
+            } else if (node.status === 'error') {
+                clearInterval(interval);
+                currentProject = p;
+                currentTimeline = Object.values(currentProject.nodes).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                if (activeNodeId === nodeId) {
+                    selectNode(nodeId);
+                }
+            } else if (node.status === 'generating') {
+                if (activeNodeId === nodeId) {
+                    const pct = Math.round((node.progress || 0) * 100);
+                    const progressText = document.getElementById('generation-progress-text');
+                    if (progressText) progressText.textContent = `Generating... ${pct}%`;
                 }
             }
         } catch (e) {

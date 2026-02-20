@@ -34,26 +34,32 @@ def get_image(filename: str, subfolder: str, folder_type: str) -> bytes:
         print(f"Error fetching image: {e}")
         return None
 
-async def listen_for_progress(prompt_id: str, callback=None):
+async def listen_for_progress(prompt_id: str, callback=None, timeout: int = 600) -> bool:
     """Listens to the ComfyUI websocket for progress on a specific prompt_id."""
     ws_url = f"ws://{COMFYUI_SERVER}/ws?clientId={CLIENT_ID}"
     try:
         async with websockets.connect(ws_url) as ws:
             while True:
-                out = await ws.recv()
+                out = await asyncio.wait_for(ws.recv(), timeout=timeout)
                 if isinstance(out, str):
                     message = json.loads(out)
                     if message['type'] == 'executing':
                         data = message['data']
                         if data['node'] is None and data['prompt_id'] == prompt_id:
                             # Execution is done
-                            break 
+                            return True 
                     elif message['type'] == 'progress':
                         if callback:
                             await callback(message['data'])
                             
+    except asyncio.TimeoutError:
+        print(f"Websocket timeout waiting for prompt {prompt_id}")
+        return False
     except Exception as e:
         print(f"Websocket error: {e}")
+        return False
+    
+    return False
 
 def get_history(prompt_id: str) -> Dict[str, Any]:
     """Gets the history/results for a given prompt_id."""

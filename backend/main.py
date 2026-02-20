@@ -140,11 +140,25 @@ async def run_generation(project_id: str, node: GenerationNode):
     # Queue prompt
     prompt_id = comfyui.queue_prompt(workflow)
     if not prompt_id:
-        print("Failed to queue prompt")
+        node.status = "error"
+        node.error = "Failed to queue prompt to ComfyUI."
+        projects.add_node_to_project(project_id, node)
         return
         
+    async def progress_callback(data):
+        val = data.get('value', 0)
+        m = data.get('max', 1)
+        node.progress = val / m if m > 0 else 0
+        projects.add_node_to_project(project_id, node)
+
     # Wait for completion
-    await comfyui.listen_for_progress(prompt_id)
+    success = await comfyui.listen_for_progress(prompt_id, callback=progress_callback, timeout=600)
+    
+    if not success:
+        node.status = "error"
+        node.error = "Generation timed out or connection lost."
+        projects.add_node_to_project(project_id, node)
+        return
     
     # Get history and save image
     history = comfyui.get_history(prompt_id)
@@ -171,13 +185,29 @@ async def run_generation(project_id: str, node: GenerationNode):
                     
                     # Update node
                     node.image_filename = f"{node.id}{ext}"
+                    node.status = "completed"
+                    node.progress = 1.0
                     projects.add_node_to_project(project_id, node)
+                else:
+                    node.status = "error"
+                    node.error = "Failed to fetch image from ComfyUI."
+                    projects.add_node_to_project(project_id, node)
+        else:
+            node.status = "error"
+            node.error = "Completed but no image was found in output."
+            projects.add_node_to_project(project_id, node)
+    else:
+        node.status = "error"
+        node.error = "Prompt ID not found in history."
+        projects.add_node_to_project(project_id, node)
 
 @app.post("/api/generate", response_model=GenerationNode)
 async def generate(req: GenerateRequest, background_tasks: BackgroundTasks):
     node = GenerationNode(
         parent_id=req.parent_node_id,
-        params=req.params
+        params=req.params,
+        status="generating",
+        progress=0.0
     )
     # Add optimistic node
     projects.add_node_to_project(req.project_id, node)
